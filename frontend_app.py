@@ -13,6 +13,9 @@ import json
 # Add the project root to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+# Import the continuous research engine
+from backend.continuous_research import continuous_research_engine
+
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
@@ -22,9 +25,14 @@ os.makedirs(os.path.join(os.path.dirname(__file__), 'templates'), exist_ok=True)
 # Create static directory if it doesn't exist
 os.makedirs(os.path.join(os.path.dirname(__file__), 'static'), exist_ok=True)
 
+# Create research_data directory if it doesn't exist
+os.makedirs(os.path.join(os.path.dirname(__file__), 'research_data'), exist_ok=True)
+
 @app.route('/')
 def index():
-    return render_template('index.html')
+    # Get continuous research status
+    research_status = continuous_research_engine.get_status()
+    return render_template('index.html', research_status=research_status)
 
 @app.route('/generate_strategy', methods=['POST'])
 def generate_strategy():
@@ -55,6 +63,11 @@ def generate_strategy():
     # Generate strategy description
     description = generate_strategy_description(ticker, df, prediction)
     
+    # Get research data if continuous research is active
+    research_data = None
+    if continuous_research_engine.active:
+        research_data = continuous_research_engine.get_latest_research(ticker)
+    
     # Return results
     return jsonify({
         'ticker': ticker,
@@ -62,7 +75,86 @@ def generate_strategy():
         'performance': performance,
         'trades': trades,
         'plot_urls': plot_urls,
-        'description': description
+        'description': description,
+        'research_data': research_data
+    })
+
+@app.route('/toggle_research', methods=['POST'])
+def toggle_research():
+    """Toggle continuous research on/off."""
+    action = request.form.get('action', 'toggle')
+    tickers = request.form.get('tickers', '').split(',')
+    tickers = [t.strip() for t in tickers if t.strip()]
+    
+    if action == 'start' or (action == 'toggle' and not continuous_research_engine.active):
+        # Start continuous research
+        interval = int(request.form.get('interval', 3600))  # Default: 1 hour
+        success = continuous_research_engine.start(tickers=tickers, interval=interval)
+        message = "Continuous research started" if success else "Failed to start continuous research"
+    elif action == 'stop' or (action == 'toggle' and continuous_research_engine.active):
+        # Stop continuous research
+        success = continuous_research_engine.stop()
+        message = "Continuous research stopped" if success else "Failed to stop continuous research"
+    else:
+        success = False
+        message = "Invalid action"
+    
+    # Get current status
+    status = continuous_research_engine.get_status()
+    
+    return jsonify({
+        'success': success,
+        'message': message,
+        'status': status
+    })
+
+@app.route('/research_status', methods=['GET'])
+def research_status():
+    """Get continuous research status."""
+    status = continuous_research_engine.get_status()
+    return jsonify(status)
+
+@app.route('/latest_research', methods=['GET'])
+def latest_research():
+    """Get latest research data."""
+    ticker = request.args.get('ticker')
+    research = continuous_research_engine.get_latest_research(ticker)
+    return jsonify(research)
+
+@app.route('/add_tickers', methods=['POST'])
+def add_tickers():
+    """Add tickers to watch list."""
+    tickers = request.form.get('tickers', '').split(',')
+    tickers = [t.strip() for t in tickers if t.strip()]
+    
+    if not tickers:
+        return jsonify({'success': False, 'message': 'No tickers provided'})
+    
+    success = continuous_research_engine.add_tickers(tickers)
+    message = f"Added tickers: {', '.join(tickers)}" if success else "Failed to add tickers"
+    
+    return jsonify({
+        'success': success,
+        'message': message,
+        'status': continuous_research_engine.get_status()
+    })
+
+@app.route('/remove_tickers', methods=['POST'])
+def remove_tickers():
+    """Remove tickers from watch list."""
+    tickers = request.form.get('tickers', '').split(',')
+    tickers = [t.strip() for t in tickers if t.strip()]
+    
+    if not tickers:
+        return jsonify({'success': False, 'message': 'No tickers provided'})
+    
+    success = continuous_research_engine.remove_tickers(tickers)
+    message = f"Removed tickers: {', '.join(tickers)}" if success else "Failed to remove tickers"
+    
+    return jsonify({
+        'success': success,
+        'message': message,
+        'status': continuous_research_engine.get_status()
     })
 
 def get_market_data(ticker, period="1y", interval="1d"):
@@ -398,380 +490,65 @@ def generate_strategy_description(ticker, df, prediction):
     rsi_last = float(df['RSI'].iloc[-1])
     macd_last = float(df['MACD'].iloc[-1])
     macd_signal_last = float(df['MACD_signal'].iloc[-1])
-    bb_middle_last = float(df['BB_middle'].iloc[-1])
-    bb_upper_last = float(df['BB_upper'].iloc[-1])
-    bb_lower_last = float(df['BB_lower'].iloc[-1])
     
-    description = f"""
-# {ticker} Trading Strategy for Tomorrow ({prediction['date']})
-
-## Market Analysis
-
-Based on technical analysis of {ticker} data up to {last_date}, the following strategy has been generated:
-
-### Current Market Conditions
-- **Last Close Price**: ${last_close:.2f}
-- **Market Trend**: {prediction['trend'].capitalize()}
-- **Momentum**: {prediction['momentum'].capitalize()}
-- **Volatility**: {prediction['volatility'].capitalize()}
-
-### Key Support and Resistance Levels
-- **Support**: ${prediction['support']}
-- **Resistance**: ${prediction['resistance']}
-
-## Technical Indicators
-
-### Moving Averages
-- The 20-day SMA is {'above' if sma20_last > sma50_last else 'below'} the 50-day SMA, indicating a {'bullish' if sma20_last > sma50_last else 'bearish'} trend.
-- The price is {'above' if close_last > sma200_last else 'below'} the 200-day SMA, suggesting a {'bullish' if close_last > sma200_last else 'bearish'} long-term trend.
-
-### RSI
-- Current RSI: {rsi_last:.2f}
-- The RSI is {'overbought (above 70)' if rsi_last > 70 else 'oversold (below 30)' if rsi_last < 30 else 'in neutral territory'}.
-
-### MACD
-- The MACD is {'above' if macd_last > macd_signal_last else 'below'} the signal line, suggesting {'bullish' if macd_last > macd_signal_last else 'bearish'} momentum.
-
-### Bollinger Bands
-- The price is {'near the upper band, suggesting potential resistance' if close_last > (bb_middle_last + 0.5 * (bb_upper_last - bb_middle_last)) else 'near the lower band, suggesting potential support' if close_last < (bb_middle_last - 0.5 * (bb_middle_last - bb_lower_last)) else 'near the middle band, suggesting consolidation'}.
-
-## Strategy Recommendation
-
-**Recommendation for Tomorrow**: {prediction['recommendation'].upper()}
-
-### Entry Strategy
-- Entry Price: ${last_close:.2f} {'with a limit order at $' + str(round(last_close * 0.99, 2)) if prediction['recommendation'] == 'buy' else ''}
-- Stop Loss: ${round(last_close * 0.97, 2) if prediction['recommendation'] == 'buy' else round(last_close * 1.03, 2)}
-- Take Profit: ${round(last_close * 1.05, 2) if prediction['recommendation'] == 'buy' else round(last_close * 0.95, 2)}
-
-### Risk Management
-- Position Size: 5% of portfolio
-- Risk per Trade: 1% of portfolio
-
-### Exit Strategy
-- Exit if price crosses below the 20-day SMA
-- Exit if RSI crosses below 40
-- Exit if MACD crosses below the signal line
-- Take profit at resistance level: ${prediction['resistance']}
-
-## Rationale
-
-{
-    'This strategy is based on a bullish outlook for ' + ticker + '. The stock is showing strong momentum with the 20-day SMA above the 50-day SMA, and the price is above the 200-day SMA, indicating a strong uptrend. The RSI is in neutral territory, suggesting room for further upside, and the MACD is above the signal line, confirming bullish momentum. The recommendation is to BUY with a tight stop loss to manage risk.' 
-    if prediction['recommendation'] == 'buy' else
-    'This strategy is based on a bearish outlook for ' + ticker + '. The stock is showing weak momentum with the 20-day SMA below the 50-day SMA, and the price is below the 200-day SMA, indicating a downtrend. The RSI is in overbought territory, suggesting potential for a pullback, and the MACD is below the signal line, confirming bearish momentum. The recommendation is to SELL with a tight stop loss to manage risk.'
-    if prediction['recommendation'] == 'sell' else
-    'This strategy is based on a neutral outlook for ' + ticker + '. The technical indicators are mixed, with some showing bullish signals and others showing bearish signals. The recommendation is to HOLD and wait for a clearer trend to emerge before taking a position.'
-}
-"""
+    # Get research data if available
+    research_data = None
+    if continuous_research_engine.active:
+        research_data = continuous_research_engine.get_latest_research(ticker)
+    
+    # Generate description
+    description = f"## {ticker} Trading Strategy\n\n"
+    description += f"As of {last_date}, {ticker} closed at ${last_close:.2f}. "
+    
+    # Technical analysis
+    if sma20_last > sma50_last:
+        description += f"The stock is in an **uptrend** with the 20-day SMA (${sma20_last:.2f}) above the 50-day SMA (${sma50_last:.2f}). "
+    else:
+        description += f"The stock is in a **downtrend** with the 20-day SMA (${sma20_last:.2f}) below the 50-day SMA (${sma50_last:.2f}). "
+    
+    if close_last > sma200_last:
+        description += f"It is trading above its 200-day SMA (${sma200_last:.2f}), indicating a **bullish** long-term trend. "
+    else:
+        description += f"It is trading below its 200-day SMA (${sma200_last:.2f}), indicating a **bearish** long-term trend. "
+    
+    # RSI analysis
+    if rsi_last > 70:
+        description += f"The RSI is at {rsi_last:.2f}, suggesting the stock is **overbought**. "
+    elif rsi_last < 30:
+        description += f"The RSI is at {rsi_last:.2f}, suggesting the stock is **oversold**. "
+    else:
+        description += f"The RSI is at {rsi_last:.2f}, in the **neutral** zone. "
+    
+    # MACD analysis
+    if macd_last > macd_signal_last:
+        description += f"The MACD ({macd_last:.2f}) is above the signal line ({macd_signal_last:.2f}), giving a **bullish** signal. "
+    else:
+        description += f"The MACD ({macd_last:.2f}) is below the signal line ({macd_signal_last:.2f}), giving a **bearish** signal. "
+    
+    # Add research insights if available
+    if research_data and 'sentiment' in research_data:
+        sentiment = research_data['sentiment']
+        sentiment_desc = "neutral"
+        if sentiment > 0.2:
+            sentiment_desc = "positive"
+        elif sentiment < -0.2:
+            sentiment_desc = "negative"
+        
+        description += f"\n\n### Market Research Insights\n\n"
+        description += f"Recent news sentiment for {ticker} is **{sentiment_desc}** with a score of {sentiment:.2f}. "
+        
+        if 'news' in research_data and research_data['news']:
+            description += f"Here are some recent headlines:\n\n"
+            for i, news in enumerate(research_data['news'][:3]):
+                description += f"- {news['headline']}\n"
+    
+    # Strategy recommendation
+    description += f"\n\n### Strategy Recommendation\n\n"
+    description += f"Based on technical analysis, the recommendation for {ticker} is to **{prediction['recommendation'].upper()}**. "
+    description += f"The stock is in a {prediction['trend']} trend with {prediction['momentum']} momentum and {prediction['volatility']} volatility. "
+    description += f"Key support level is at ${prediction['support']:.2f} and resistance at ${prediction['resistance']:.2f}."
     
     return description
 
 if __name__ == '__main__':
-    # Create index.html template
-    index_html = """
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Gemma Advanced Trading System</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                margin: 0;
-                padding: 20px;
-                background-color: #f5f5f5;
-            }
-            .container {
-                max-width: 1200px;
-                margin: 0 auto;
-                background-color: white;
-                padding: 20px;
-                border-radius: 5px;
-                box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            }
-            h1 {
-                color: #333;
-                text-align: center;
-            }
-            .form-group {
-                margin-bottom: 15px;
-            }
-            label {
-                display: block;
-                margin-bottom: 5px;
-                font-weight: bold;
-            }
-            input, select {
-                width: 100%;
-                padding: 8px;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                box-sizing: border-box;
-            }
-            button {
-                background-color: #4CAF50;
-                color: white;
-                padding: 10px 15px;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 16px;
-            }
-            button:hover {
-                background-color: #45a049;
-            }
-            .result {
-                margin-top: 20px;
-                padding: 20px;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                display: none;
-            }
-            .loading {
-                text-align: center;
-                display: none;
-            }
-            .plot-container {
-                margin-top: 20px;
-                text-align: center;
-            }
-            .plot-container img {
-                max-width: 100%;
-                height: auto;
-                margin-bottom: 20px;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 20px;
-            }
-            th, td {
-                border: 1px solid #ddd;
-                padding: 8px;
-                text-align: left;
-            }
-            th {
-                background-color: #f2f2f2;
-            }
-            .metrics {
-                display: flex;
-                flex-wrap: wrap;
-                margin-top: 20px;
-            }
-            .metric {
-                flex: 1 0 30%;
-                margin: 5px;
-                padding: 10px;
-                background-color: #f9f9f9;
-                border-radius: 4px;
-                text-align: center;
-            }
-            .metric h3 {
-                margin-top: 0;
-                color: #333;
-            }
-            .metric p {
-                font-size: 24px;
-                font-weight: bold;
-                margin: 5px 0;
-            }
-            .recommendation {
-                text-align: center;
-                margin: 20px 0;
-                padding: 15px;
-                border-radius: 4px;
-                font-size: 24px;
-                font-weight: bold;
-            }
-            .buy {
-                background-color: #d4edda;
-                color: #155724;
-            }
-            .sell {
-                background-color: #f8d7da;
-                color: #721c24;
-            }
-            .hold {
-                background-color: #fff3cd;
-                color: #856404;
-            }
-            .description {
-                white-space: pre-line;
-                line-height: 1.6;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>Gemma Advanced Trading System</h1>
-            <div class="form-group">
-                <label for="ticker">Ticker Symbol:</label>
-                <input type="text" id="ticker" name="ticker" value="AAPL" required>
-            </div>
-            <div class="form-group">
-                <label for="strategy_type">Strategy Type:</label>
-                <select id="strategy_type" name="strategy_type">
-                    <option value="swing">Swing Trading</option>
-                    <option value="day">Day Trading</option>
-                    <option value="position">Position Trading</option>
-                </select>
-            </div>
-            <button id="generate-btn">Generate Strategy</button>
-            
-            <div class="loading" id="loading">
-                <p>Generating strategy... Please wait.</p>
-                <img src="https://i.gifer.com/origin/b4/b4d657e7ef262b88eb5f7ac021edda87.gif" alt="Loading" width="50">
-            </div>
-            
-            <div class="result" id="result">
-                <div class="recommendation" id="recommendation"></div>
-                
-                <div class="metrics">
-                    <div class="metric">
-                        <h3>Trend</h3>
-                        <p id="trend"></p>
-                    </div>
-                    <div class="metric">
-                        <h3>Momentum</h3>
-                        <p id="momentum"></p>
-                    </div>
-                    <div class="metric">
-                        <h3>Volatility</h3>
-                        <p id="volatility"></p>
-                    </div>
-                    <div class="metric">
-                        <h3>Support</h3>
-                        <p id="support"></p>
-                    </div>
-                    <div class="metric">
-                        <h3>Resistance</h3>
-                        <p id="resistance"></p>
-                    </div>
-                    <div class="metric">
-                        <h3>Total Return</h3>
-                        <p id="total-return"></p>
-                    </div>
-                    <div class="metric">
-                        <h3>Sharpe Ratio</h3>
-                        <p id="sharpe-ratio"></p>
-                    </div>
-                    <div class="metric">
-                        <h3>Max Drawdown</h3>
-                        <p id="max-drawdown"></p>
-                    </div>
-                    <div class="metric">
-                        <h3>Win Rate</h3>
-                        <p id="win-rate"></p>
-                    </div>
-                </div>
-                
-                <div class="plot-container" id="plots"></div>
-                
-                <h2>Trade History</h2>
-                <table id="trades">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Type</th>
-                            <th>Price</th>
-                            <th>Shares</th>
-                            <th>P&L</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-                
-                <h2>Strategy Description</h2>
-                <div class="description" id="description"></div>
-            </div>
-        </div>
-        
-        <script>
-            document.getElementById('generate-btn').addEventListener('click', function() {
-                const ticker = document.getElementById('ticker').value;
-                const strategyType = document.getElementById('strategy_type').value;
-                
-                if (!ticker) {
-                    alert('Please enter a ticker symbol');
-                    return;
-                }
-                
-                document.getElementById('loading').style.display = 'block';
-                document.getElementById('result').style.display = 'none';
-                
-                const formData = new FormData();
-                formData.append('ticker', ticker);
-                formData.append('strategy_type', strategyType);
-                
-                fetch('/generate_strategy', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('result').style.display = 'block';
-                    
-                    // Update recommendation
-                    const recommendationEl = document.getElementById('recommendation');
-                    recommendationEl.textContent = data.prediction.recommendation.toUpperCase();
-                    recommendationEl.className = 'recommendation ' + data.prediction.recommendation.toLowerCase();
-                    
-                    // Update metrics
-                    document.getElementById('trend').textContent = data.prediction.trend.charAt(0).toUpperCase() + data.prediction.trend.slice(1);
-                    document.getElementById('momentum').textContent = data.prediction.momentum.charAt(0).toUpperCase() + data.prediction.momentum.slice(1);
-                    document.getElementById('volatility').textContent = data.prediction.volatility.charAt(0).toUpperCase() + data.prediction.volatility.slice(1);
-                    document.getElementById('support').textContent = '$' + data.prediction.support;
-                    document.getElementById('resistance').textContent = '$' + data.prediction.resistance;
-                    document.getElementById('total-return').textContent = data.performance.total_return;
-                    document.getElementById('sharpe-ratio').textContent = data.performance.sharpe_ratio;
-                    document.getElementById('max-drawdown').textContent = data.performance.max_drawdown;
-                    document.getElementById('win-rate').textContent = data.performance.win_rate;
-                    
-                    // Update plots
-                    const plotsContainer = document.getElementById('plots');
-                    plotsContainer.innerHTML = '';
-                    data.plot_urls.forEach(url => {
-                        const img = document.createElement('img');
-                        img.src = url;
-                        img.alt = 'Strategy Plot';
-                        plotsContainer.appendChild(img);
-                    });
-                    
-                    // Update trades table
-                    const tradesBody = document.getElementById('trades').getElementsByTagName('tbody')[0];
-                    tradesBody.innerHTML = '';
-                    data.trades.forEach(trade => {
-                        const row = tradesBody.insertRow();
-                        row.insertCell(0).textContent = trade.date;
-                        row.insertCell(1).textContent = trade.type;
-                        row.insertCell(2).textContent = trade.price;
-                        row.insertCell(3).textContent = trade.shares;
-                        row.insertCell(4).textContent = trade.pnl;
-                    });
-                    
-                    // Update description
-                    document.getElementById('description').textContent = data.description;
-                })
-                .catch(error => {
-                    document.getElementById('loading').style.display = 'none';
-                    alert('Error generating strategy: ' + error);
-                });
-            });
-        </script>
-    </body>
-    </html>
-    """
-    
-    # Create templates directory if it doesn't exist
-    templates_dir = os.path.join(os.path.dirname(__file__), 'templates')
-    os.makedirs(templates_dir, exist_ok=True)
-    
-    # Write index.html template
-    with open(os.path.join(templates_dir, 'index.html'), 'w') as f:
-        f.write(index_html)
-    
-    # Run the app
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(debug=True, host='0.0.0.0')

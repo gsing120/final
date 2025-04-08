@@ -1,0 +1,3 @@
+@echo off
+echo Starting Gemma Advanced Trading System...
+start /B pythonw fixed_frontend_app.py

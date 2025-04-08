@@ -1,0 +1,108 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trade Journal - Gemma Advanced Trading</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand">Gemma Advanced Trading</a>
+            <ul class="navbar-menu">
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/strategy">Strategy</a></li>
+                <li><a href="/scanner">Scanner</a></li>
+                <li><a href="/backtesting">Backtesting</a></li>
+                <li><a href="/journal">Journal</a></li>
+                <li><a href="/settings">Settings</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <h1>Trade Journal</h1>
+        
+        <div class="card">
+            <div class="card-header">Add Journal Entry</div>
+            <div class="card-body">
+                <form id="journal-form">
+                    <div class="form-group">
+                        <label for="date">Date:</label>
+                        <input type="date" id="date" name="date" value="{{ now.strftime('%Y-%m-%d') }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ticker">Ticker:</label>
+                        <input type="text" id="ticker" name="ticker" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="action">Action:</label>
+                        <select id="action" name="action" required>
+                            <option value="BUY">BUY</option>
+                            <option value="SELL">SELL</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="price">Price:</label>
+                        <input type="number" id="price" name="price" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="shares">Shares:</label>
+                        <input type="number" id="shares" name="shares" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reason">Reason for Trade:</label>
+                        <textarea id="reason" name="reason" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="result">Result:</label>
+                        <select id="result" name="result">
+                            <option value="Open">Open</option>
+                            <option value="Closed (+%)">Closed (Profit)</option>
+                            <option value="Closed (-%)">Closed (Loss)</option>
+                        </select>
+                    </div>
+                    <button type="submit">Add Entry</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">Journal Entries</div>
+            <div class="card-body">
+                <table id="journal-entries">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Ticker</th>
+                            <th>Action</th>
+                            <th>Price</th>
+                            <th>Shares</th>
+                            <th>Reason</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in trade_journal %}
+                        <tr>
+                            <td>{{ entry.date }}</td>
+                            <td>{{ entry.ticker }}</td>
+                            <td>{{ entry.action }}</td>
+                            <td>${{ "%.2f"|format(entry.price) }}</td>
+                            <td>{{ entry.shares }}</td>
+                            <td>{{ entry.reason }}</td>
+                            <td>{{ entry.result }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
+        

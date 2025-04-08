@@ -1,0 +1,122 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backtesting - Gemma Advanced Trading</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand">Gemma Advanced Trading</a>
+            <ul class="navbar-menu">
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/strategy">Strategy</a></li>
+                <li><a href="/scanner">Scanner</a></li>
+                <li><a href="/backtesting">Backtesting</a></li>
+                <li><a href="/journal">Journal</a></li>
+                <li><a href="/settings">Settings</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <h1>Strategy Backtesting</h1>
+        
+        <div class="card">
+            <div class="card-header">Backtest Parameters</div>
+            <div class="card-body">
+                <form id="backtest-form">
+                    <div class="form-group">
+                        <label for="ticker">Ticker Symbol:</label>
+                        <input type="text" id="ticker" name="ticker" value="AAPL" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="start_date">Start Date:</label>
+                        <input type="date" id="start_date" name="start_date" value="2024-01-01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="end_date">End Date:</label>
+                        <input type="date" id="end_date" name="end_date" value="2025-04-01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="strategy_type">Strategy Type:</label>
+                        <select id="strategy_type" name="strategy_type">
+                            <option value="swing">Swing Trading</option>
+                            <option value="day">Day Trading</option>
+                            <option value="position">Position Trading</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="initial_capital">Initial Capital:</label>
+                        <input type="number" id="initial_capital" name="initial_capital" value="10000" min="1000" step="1000" required>
+                    </div>
+                    <button type="submit">Run Backtest</button>
+                </form>
+                
+                <div class="loading" id="backtest-loading" style="display: none;">
+                    <p>Running backtest... Please wait.</p>
+                    <img src="https://i.gifer.com/origin/b4/b4d657e7ef262b88eb5f7ac021edda87.gif" alt="Loading" width="50">
+                </div>
+                
+                <div id="backtest-result" style="display: none;">
+                    <h2>Backtest Results</h2>
+                    
+                    <div class="metrics">
+                        <div class="metric">
+                            <h3>Initial Capital</h3>
+                            <p id="initial-capital"></p>
+                        </div>
+                        <div class="metric">
+                            <h3>Final Capital</h3>
+                            <p id="final-capital"></p>
+                        </div>
+                        <div class="metric">
+                            <h3>Total Return</h3>
+                            <p id="backtest-return"></p>
+                        </div>
+                        <div class="metric">
+                            <h3>Annual Return</h3>
+                            <p id="annual-return"></p>
+                        </div>
+                        <div class="metric">
+                            <h3>Sharpe Ratio</h3>
+                            <p id="backtest-sharpe"></p>
+                        </div>
+                        <div class="metric">
+                            <h3>Max Drawdown</h3>
+                            <p id="backtest-drawdown"></p>
+                        </div>
+                        <div class="metric">
+                            <h3>Win Rate</h3>
+                            <p id="backtest-winrate"></p>
+                        </div>
+                    </div>
+                    
+                    <div class="plot-container" id="backtest-plots"></div>
+                    
+                    <h2>Trade History</h2>
+                    <table id="backtest-trades">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Price</th>
+                                <th>Shares</th>
+                                <th>Value</th>
+                                <th>P&L</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
+        

@@ -31,6 +31,7 @@ class RiskManager:
         self.positions = {}  # Dictionary to store current positions
         self.risk_metrics = {}  # Dictionary to store risk metrics
         self.historical_data = {}  # Dictionary to store historical data for risk calculations
+        self.account_balance = portfolio_value  # Initialize account balance to match portfolio value
         
     def set_portfolio_value(self, value):
         """
@@ -42,6 +43,51 @@ class RiskManager:
             Current portfolio value in base currency
         """
         self.portfolio_value = value
+        
+    def set_account_balance(self, balance):
+        """
+        Set the current account balance.
+        
+        Parameters:
+        -----------
+        balance : float
+            Current account balance in base currency
+        """
+        self.account_balance = balance
+        
+    def get_account_balance(self):
+        """
+        Get the current account balance.
+        
+        Returns:
+        --------
+        float
+            Current account balance in base currency
+        """
+        return self.account_balance
+        
+    def update_account_balance(self, amount, transaction_type):
+        """
+        Update the account balance based on a transaction.
+        
+        Parameters:
+        -----------
+        amount : float
+            Transaction amount
+        transaction_type : str
+            Type of transaction ('deposit', 'withdrawal', 'trade_profit', 'trade_loss', 'fee')
+            
+        Returns:
+        --------
+        float
+            Updated account balance
+        """
+        if transaction_type in ['deposit', 'trade_profit']:
+            self.account_balance += amount
+        elif transaction_type in ['withdrawal', 'trade_loss', 'fee']:
+            self.account_balance -= amount
+        
+        return self.account_balance
         
     def set_risk_limits(self, max_portfolio_risk, max_position_risk):
         """
@@ -262,6 +308,7 @@ class RiskManager:
         
         summary = {
             'portfolio_value': self.portfolio_value,
+            'account_balance': self.account_balance,
             'exposure': exposure,
             'exposure_percentage': exposure / self.portfolio_value,
             'total_risk': total_risk,

@@ -1,0 +1,174 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Gemma Advanced Trading</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand">Gemma Advanced Trading</a>
+            <ul class="navbar-menu">
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/strategy">Strategy</a></li>
+                <li><a href="/scanner">Scanner</a></li>
+                <li><a href="/backtesting">Backtesting</a></li>
+                <li><a href="/journal">Journal</a></li>
+                <li><a href="/settings">Settings</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <h1>Trading Dashboard</h1>
+        
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <h3>Portfolio Value</h3>
+                <p>${{ "%.2f"|format(portfolio_value) }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Performance</h3>
+                <p>{{ "%.2f"|format(portfolio_performance) }}%</p>
+            </div>
+            <div class="stat-card">
+                <h3>Cash Available</h3>
+                <p>${{ "%.2f"|format(portfolio.cash) }}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Open Positions</h3>
+                <p>{{ portfolio.positions|length }}</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">Portfolio Positions</div>
+            <div class="card-body">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ticker</th>
+                            <th>Shares</th>
+                            <th>Entry Price</th>
+                            <th>Current Price</th>
+                            <th>Value</th>
+                            <th>Profit/Loss</th>
+                            <th>P/L %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for position in portfolio.positions %}
+                        <tr>
+                            <td>{{ position.ticker }}</td>
+                            <td>{{ position.shares }}</td>
+                            <td>${{ "%.2f"|format(position.entry_price) }}</td>
+                            <td>${{ "%.2f"|format(position.current_price) }}</td>
+                            <td>${{ "%.2f"|format(position.value) }}</td>
+                            <td>${{ "%.2f"|format(position.profit) }}</td>
+                            <td>{{ "%.2f"|format(position.profit_percent) }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">Watchlist</div>
+            <div class="card-body">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ticker</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ticker in portfolio.watchlist %}
+                        <tr>
+                            <td>{{ ticker }}</td>
+                            <td>
+                                <a href="/strategy?ticker={{ ticker }}"><button>Create Strategy</button></a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">Market Scanner Results</div>
+            <div class="card-body">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ticker</th>
+                            <th>Signal</th>
+                            <th>Strength</th>
+                            <th>Pattern</th>
+                            <th>Volume</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for result in scanner_results %}
+                        <tr>
+                            <td>{{ result.ticker }}</td>
+                            <td style="{% if result.signal == 'BUY' %}color: #155724; background-color: #d4edda;{% elif result.signal == 'SELL' %}color: #721c24; background-color: #f8d7da;{% endif %}">
+                                {{ result.signal }}
+                            </td>
+                            <td>{{ result.strength }}</td>
+                            <td>{{ result.pattern }}</td>
+                            <td>{{ result.volume }}</td>
+                            <td>
+                                <a href="/strategy?ticker={{ result.ticker }}"><button>Create Strategy</button></a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">Recent Trades</div>
+            <div class="card-body">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Ticker</th>
+                            <th>Action</th>
+                            <th>Price</th>
+                            <th>Shares</th>
+                            <th>Reason</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in trade_journal[:5] %}
+                        <tr>
+                            <td>{{ entry.date }}</td>
+                            <td>{{ entry.ticker }}</td>
+                            <td>{{ entry.action }}</td>
+                            <td>${{ "%.2f"|format(entry.price) }}</td>
+                            <td>{{ entry.shares }}</td>
+                            <td>{{ entry.reason }}</td>
+                            <td>{{ entry.result }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <a href="/journal"><button style="margin-top: 10px;">View All Trades</button></a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
+        

@@ -1,0 +1,144 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Gemma Advanced Trading</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand">Gemma Advanced Trading</a>
+            <ul class="navbar-menu">
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/strategy">Strategy</a></li>
+                <li><a href="/scanner">Scanner</a></li>
+                <li><a href="/backtesting">Backtesting</a></li>
+                <li><a href="/journal">Journal</a></li>
+                <li><a href="/settings">Settings</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <h1>System Settings</h1>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="memory-settings">Memory Module</div>
+            <div class="tab" data-tab="general-settings">General Settings</div>
+            <div class="tab" data-tab="api-settings">API Settings</div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">Settings</div>
+            <div class="card-body">
+                <div id="memory-settings" class="tab-content active">
+                    <h2>Memory Module Control</h2>
+                    <p>Adjust how the system learns from past trades and market patterns. Higher values increase the weight given to historical data.</p>
+                    
+                    <form id="memory-form">
+                        <div class="memory-slider-container">
+                            <label for="trade_history_depth">Trade History Depth:</label>
+                            <input type="range" id="trade_history_depth" name="trade_history_depth" min="0" max="100" value="{{ memory_settings.trade_history_depth }}" class="memory-slider">
+                            <span class="slider-value">{{ memory_settings.trade_history_depth }}</span>
+                        </div>
+                        
+                        <div class="memory-slider-container">
+                            <label for="market_pattern_recognition">Market Pattern Recognition:</label>
+                            <input type="range" id="market_pattern_recognition" name="market_pattern_recognition" min="0" max="100" value="{{ memory_settings.market_pattern_recognition }}" class="memory-slider">
+                            <span class="slider-value">{{ memory_settings.market_pattern_recognition }}</span>
+                        </div>
+                        
+                        <div class="memory-slider-container">
+                            <label for="sentiment_analysis_weight">Sentiment Analysis Weight:</label>
+                            <input type="range" id="sentiment_analysis_weight" name="sentiment_analysis_weight" min="0" max="100" value="{{ memory_settings.sentiment_analysis_weight }}" class="memory-slider">
+                            <span class="slider-value">{{ memory_settings.sentiment_analysis_weight }}</span>
+                        </div>
+                        
+                        <div class="memory-slider-container">
+                            <label for="technical_indicator_memory">Technical Indicator Memory:</label>
+                            <input type="range" id="technical_indicator_memory" name="technical_indicator_memory" min="0" max="100" value="{{ memory_settings.technical_indicator_memory }}" class="memory-slider">
+                            <span class="slider-value">{{ memory_settings.technical_indicator_memory }}</span>
+                        </div>
+                        
+                        <div class="memory-slider-container">
+                            <label for="adaptive_learning_rate">Adaptive Learning Rate:</label>
+                            <input type="range" id="adaptive_learning_rate" name="adaptive_learning_rate" min="0" max="100" value="{{ memory_settings.adaptive_learning_rate }}" class="memory-slider">
+                            <span class="slider-value">{{ memory_settings.adaptive_learning_rate }}</span>
+                        </div>
+                        
+                        <button type="submit">Save Memory Settings</button>
+                    </form>
+                </div>
+                
+                <div id="general-settings" class="tab-content">
+                    <h2>General Settings</h2>
+                    <p>Configure general system settings.</p>
+                    
+                    <form>
+                        <div class="form-group">
+                            <label for="default_ticker">Default Ticker:</label>
+                            <input type="text" id="default_ticker" name="default_ticker" value="AAPL">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="default_strategy">Default Strategy Type:</label>
+                            <select id="default_strategy" name="default_strategy">
+                                <option value="swing">Swing Trading</option>
+                                <option value="day">Day Trading</option>
+                                <option value="position">Position Trading</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="risk_per_trade">Default Risk Per Trade (%):</label>
+                            <input type="number" id="risk_per_trade" name="risk_per_trade" value="1" min="0.1" max="10" step="0.1">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="position_size">Default Position Size (%):</label>
+                            <input type="number" id="position_size" name="position_size" value="5" min="1" max="100" step="1">
+                        </div>
+                        
+                        <button type="submit">Save General Settings</button>
+                    </form>
+                </div>
+                
+                <div id="api-settings" class="tab-content">
+                    <h2>API Settings</h2>
+                    <p>Configure API connections for data sources.</p>
+                    
+                    <form>
+                        <div class="form-group">
+                            <label for="api_key">API Key:</label>
+                            <input type="text" id="api_key" name="api_key" placeholder="Enter API key">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="api_secret">API Secret:</label>
+                            <input type="password" id="api_secret" name="api_secret" placeholder="Enter API secret">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="data_provider">Data Provider:</label>
+                            <select id="data_provider" name="data_provider">
+                                <option value="yahoo">Yahoo Finance</option>
+                                <option value="alpha_vantage">Alpha Vantage</option>
+                                <option value="iex">IEX Cloud</option>
+                                <option value="polygon">Polygon.io</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit">Save API Settings</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
+        

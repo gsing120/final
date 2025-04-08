@@ -1,29 +1,26 @@
-# Python
+# Gemma Advanced Trading System - .gitignore
+
+# Ignore embedded repositories
+.gitignore_dir/
+windows_repo/
+windows_repo_update/
+
+# Python bytecode
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
 
-# Virtual Environment
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Virtual environments
 venv/
 env/
 ENV/
+.env/
+.venv/
 
 # IDE files
 .idea/
@@ -31,22 +28,38 @@ ENV/
 *.swp
 *.swo
 
-# Logs
-logs/
-*.log
-
-# Data files
-data/
-*.csv
-*.xlsx
-*.json
-
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# OS specific
+# Data files
+*.csv
+*.json
+*.pkl
+*.h5
+
+# Log files
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+
+# OS specific files
 .DS_Store
 Thumbs.db
 
-# Gemma Advanced specific
-prompts/
+# Bundled application files
+bundled_app/
+*.spec
+
+# Test cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Documentation build
+docs/_build/
+
+# NLTK data
+nltk_data/

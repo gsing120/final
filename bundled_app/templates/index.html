@@ -1,0 +1,54 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemma Advanced Trading System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand">Gemma Advanced Trading</a>
+            <ul class="navbar-menu">
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/strategy">Strategy</a></li>
+                <li><a href="/scanner">Scanner</a></li>
+                <li><a href="/backtesting">Backtesting</a></li>
+                <li><a href="/journal">Journal</a></li>
+                <li><a href="/settings">Settings</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="card">
+            <div class="card-header">Welcome to Gemma Advanced Trading System</div>
+            <div class="card-body">
+                <h2>Advanced Trading with Gemma 3 Integration</h2>
+                <p>The Gemma Advanced Trading System is a sophisticated trading platform that leverages Gemma 3's powerful capabilities to provide intelligent trading strategies, market analysis, and portfolio management.</p>
+                
+                <h3>Key Features:</h3>
+                <ul>
+                    <li><strong>Strategy Generation:</strong> Create custom trading strategies based on technical analysis, market conditions, and Gemma 3's advanced reasoning.</li>
+                    <li><strong>Market Scanner:</strong> Scan the market for trading opportunities based on technical patterns, momentum, and other criteria.</li>
+                    <li><strong>Backtesting:</strong> Test your strategies against historical data to evaluate performance before risking real capital.</li>
+                    <li><strong>Portfolio Management:</strong> Track your positions, monitor performance, and get insights to optimize your portfolio.</li>
+                    <li><strong>Trade Journal:</strong> Record your trades, reasons, and outcomes to improve your trading discipline and learn from experience.</li>
+                    <li><strong>Memory Module Control:</strong> Fine-tune how the system learns from past trades and market patterns.</li>
+                </ul>
+                
+                <div style="display: flex; justify-content: space-around; margin-top: 30px;">
+                    <a href="/dashboard"><button>Go to Dashboard</button></a>
+                    <a href="/strategy"><button>Create Strategy</button></a>
+                    <a href="/scanner"><button>Scan Market</button></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
+        

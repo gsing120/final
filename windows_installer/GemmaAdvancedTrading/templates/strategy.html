@@ -1,0 +1,120 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strategy Generator - Gemma Advanced Trading</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand">Gemma Advanced Trading</a>
+            <ul class="navbar-menu">
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/strategy">Strategy</a></li>
+                <li><a href="/scanner">Scanner</a></li>
+                <li><a href="/backtesting">Backtesting</a></li>
+                <li><a href="/journal">Journal</a></li>
+                <li><a href="/settings">Settings</a></li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <h1>Strategy Generator</h1>
+        
+        <div class="card">
+            <div class="card-header">Generate Trading Strategy</div>
+            <div class="card-body">
+                <form id="strategy-form">
+                    <div class="form-group">
+                        <label for="ticker">Ticker Symbol:</label>
+                        <input type="text" id="ticker" name="ticker" value="AAPL" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="strategy_type">Strategy Type:</label>
+                        <select id="strategy_type" name="strategy_type">
+                            <option value="swing">Swing Trading</option>
+                            <option value="day">Day Trading</option>
+                            <option value="position">Position Trading</option>
+                        </select>
+                    </div>
+                    <button type="submit">Generate Strategy</button>
+                </form>
+                
+                <div class="loading" id="loading">
+                    <p>Generating strategy... Please wait.</p>
+                    <img src="https://i.gifer.com/origin/b4/b4d657e7ef262b88eb5f7ac021edda87.gif" alt="Loading" width="50">
+                </div>
+                
+                <div id="strategy-result" style="display: none;">
+                    <div class="recommendation" id="recommendation"></div>
+                    
+                    <div class="metrics">
+                        <div class="metric">
+                            <h3>Trend</h3>
+                            <p id="trend"></p>
+                        </div>
+                        <div class="metric">
+                            <h3>Momentum</h3>
+                            <p id="momentum"></p>
+                        </div>
+                        <div class="metric">
+                            <h3>Volatility</h3>
+                            <p id="volatility"></p>
+                        </div>
+                        <div class="metric">
+                            <h3>Support</h3>
+                            <p id="support"></p>
+                        </div>
+                        <div class="metric">
+                            <h3>Resistance</h3>
+                            <p id="resistance"></p>
+                        </div>
+                        <div class="metric">
+                            <h3>Total Return</h3>
+                            <p id="total-return"></p>
+                        </div>
+                        <div class="metric">
+                            <h3>Sharpe Ratio</h3>
+                            <p id="sharpe-ratio"></p>
+                        </div>
+                        <div class="metric">
+                            <h3>Max Drawdown</h3>
+                            <p id="max-drawdown"></p>
+                        </div>
+                        <div class="metric">
+                            <h3>Win Rate</h3>
+                            <p id="win-rate"></p>
+                        </div>
+                    </div>
+                    
+                    <div class="plot-container" id="plots"></div>
+                    
+                    <h2>Trade History</h2>
+                    <table id="trades">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Price</th>
+                                <th>Shares</th>
+                                <th>P&L</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    
+                    <h2>Strategy Description</h2>
+                    <div class="description" id="description"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
+        
