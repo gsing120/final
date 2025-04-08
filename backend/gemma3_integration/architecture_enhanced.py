@@ -57,108 +57,146 @@ class ModelManager:
         Parameters:
         -----------
         model_path : str, optional
-            Path to the Gemma 3 model files. If None, uses default path.
+            Path to the Gemma 3 model files. If not provided, uses default path.
         """
         self.logger = logging.getLogger("GemmaTrading.ModelManager")
-        self.model_path = model_path or os.environ.get("GEMMA_MODEL_PATH", "./models")
-        self.model_version = "gemma-3-latest"
-        self.model_cache = {}
+        
+        # Set default model path if not provided
+        if model_path is None:
+            # Use a mock path for development/testing
+            self.model_path = os.path.join(os.path.dirname(__file__), "models")
+        else:
+            self.model_path = model_path
+        
+        # Create model path if it doesn't exist
+        os.makedirs(self.model_path, exist_ok=True)
+        
+        # Initialize model versions dictionary
+        self.model_versions = {
+            "default": "gemma3-base",
+            "finance": "gemma3-finance",
+            "math": "gemma3-math",
+            "nlp": "gemma3-nlp"
+        }
+        
+        # Initialize loaded models dictionary
+        self.loaded_models = {}
         
         self.logger.info(f"Initialized ModelManager with model path: {self.model_path}")
     
-    def get_model(self, use_case: str) -> Any:
+    def load_model(self, model_type: str = "default") -> Any:
         """
-        Get the appropriate Gemma 3 model for the specified use case.
+        Load a Gemma 3 model of the specified type.
         
         Parameters:
         -----------
-        use_case : str
-            The use case for which the model is needed (e.g., "news_analysis",
-            "strategy_generation", "risk_assessment").
+        model_type : str
+            Type of model to load. Options: "default", "finance", "math", "nlp".
             
         Returns:
         --------
         Any
-            The loaded model instance optimized for the specified use case.
+            Loaded model object.
         """
-        if use_case in self.model_cache:
-            return self.model_cache[use_case]
+        self.logger.info(f"Loading model of type: {model_type}")
         
-        # In a real implementation, this would load and configure the actual model
-        # For this implementation, we'll simulate the model loading
-        self.logger.info(f"Loading Gemma 3 model for use case: {use_case}")
-        model = self._load_model(use_case)
-        self.model_cache[use_case] = model
+        # Check if model is already loaded
+        if model_type in self.loaded_models:
+            self.logger.info(f"Model {model_type} already loaded")
+            return self.loaded_models[model_type]
         
-        return model
-    
-    def _load_model(self, use_case: str) -> Any:
-        """
-        Load the Gemma 3 model and optimize it for the specified use case.
+        # Get model version
+        model_version = self.model_versions.get(model_type, self.model_versions["default"])
         
-        Parameters:
-        -----------
-        use_case : str
-            The use case for which the model is needed.
-            
-        Returns:
-        --------
-        Any
-            The loaded model instance.
-        """
         # In a real implementation, this would load the actual model
-        # For this implementation, we'll simulate the model loading
-        self.logger.info(f"Simulating loading of Gemma 3 model for {use_case}")
-        
-        # Simulate different model configurations for different use cases
-        model_config = {
-            "news_analysis": {"precision": "float16", "context_length": 8192},
-            "strategy_generation": {"precision": "float16", "context_length": 16384},
-            "risk_assessment": {"precision": "float32", "context_length": 4096},
-            "market_analysis": {"precision": "float16", "context_length": 8192},
-            "trade_analysis": {"precision": "float16", "context_length": 8192},
-            "portfolio_optimization": {"precision": "float32", "context_length": 4096},
-            "default": {"precision": "float16", "context_length": 8192}
+        # For now, we'll create a mock model object
+        model = {
+            "name": model_version,
+            "type": model_type,
+            "loaded_at": datetime.datetime.now().isoformat()
         }
         
-        config = model_config.get(use_case, model_config["default"])
+        # Store loaded model
+        self.loaded_models[model_type] = model
         
-        # In a real implementation, this would return the actual model
-        # For this implementation, we'll return a placeholder
-        return {"name": "gemma-3", "version": self.model_version, "config": config}
+        self.logger.info(f"Loaded model: {model_version}")
+        return model
     
-    def update_model(self) -> bool:
+    def optimize_model(self, model_type: str, optimization_params: Dict[str, Any]) -> Any:
         """
-        Check for and apply model updates.
+        Optimize a model for specific use cases.
         
+        Parameters:
+        -----------
+        model_type : str
+            Type of model to optimize.
+        optimization_params : Dict[str, Any]
+            Parameters for optimization.
+            
         Returns:
         --------
-        bool
-            True if the model was updated, False otherwise.
+        Any
+            Optimized model object.
         """
-        # In a real implementation, this would check for and apply model updates
-        # For this implementation, we'll simulate the update process
-        self.logger.info("Checking for Gemma 3 model updates")
+        self.logger.info(f"Optimizing model {model_type} with params: {optimization_params}")
         
-        # Simulate update check
-        update_available = False
+        # Load model if not already loaded
+        if model_type not in self.loaded_models:
+            self.load_model(model_type)
         
-        if update_available:
-            self.logger.info("Updating Gemma 3 model")
-            # Simulate update process
-            self.model_version = "gemma-3-latest-updated"
-            self.model_cache = {}  # Clear cache to force reload
-            return True
+        # Get model
+        model = self.loaded_models[model_type]
         
-        self.logger.info("Gemma 3 model is up to date")
-        return False
+        # In a real implementation, this would apply optimization techniques
+        # For now, we'll just update the mock model object
+        model["optimized"] = True
+        model["optimization_params"] = optimization_params
+        model["optimized_at"] = datetime.datetime.now().isoformat()
+        
+        self.logger.info(f"Optimized model: {model['name']}")
+        return model
+    
+    def update_model(self, model_type: str) -> Any:
+        """
+        Update a model to the latest version.
+        
+        Parameters:
+        -----------
+        model_type : str
+            Type of model to update.
+            
+        Returns:
+        --------
+        Any
+            Updated model object.
+        """
+        self.logger.info(f"Updating model: {model_type}")
+        
+        # In a real implementation, this would check for and download updates
+        # For now, we'll just update the mock model object
+        
+        # Unload existing model if loaded
+        if model_type in self.loaded_models:
+            del self.loaded_models[model_type]
+        
+        # Load model (which will now be the "updated" version)
+        model = self.load_model(model_type)
+        
+        # Update model metadata
+        model["updated"] = True
+        model["updated_at"] = datetime.datetime.now().isoformat()
+        
+        self.logger.info(f"Updated model: {model['name']}")
+        return model
+
 
 class PromptEngine:
     """
     Manages prompt templates and generation for different use cases.
     
-    This class provides methods for generating effective prompts for different
-    Gemma 3 use cases, ensuring consistent and high-quality results.
+    This class provides a structured way to generate prompts for various
+    trading-related tasks, ensuring consistency and effectiveness in
+    interactions with the Gemma 3 model.
     """
     
     def __init__(self, templates_path: Optional[str] = None):
@@ -168,271 +206,89 @@ class PromptEngine:
         Parameters:
         -----------
         templates_path : str, optional
-            Path to the prompt templates directory. If None, uses default path.
+            Path to prompt templates. If not provided, uses default templates.
         """
         self.logger = logging.getLogger("GemmaTrading.PromptEngine")
-        self.templates_path = templates_path or os.environ.get("GEMMA_TEMPLATES_PATH", "./templates")
-        self.templates = self._load_templates()
+        
+        # Set default templates path if not provided
+        if templates_path is None:
+            # Use a mock path for development/testing
+            self.templates_path = os.path.join(os.path.dirname(__file__), "templates")
+        else:
+            self.templates_path = templates_path
+        
+        # Create templates path if it doesn't exist
+        os.makedirs(self.templates_path, exist_ok=True)
+        
+        # Load default templates
+        self.templates = self._load_default_templates()
         
         self.logger.info(f"Initialized PromptEngine with templates path: {self.templates_path}")
     
-    def _load_templates(self) -> Dict[str, str]:
+    def _load_default_templates(self) -> Dict[str, str]:
         """
-        Load prompt templates from files or use default templates.
+        Load default prompt templates.
         
         Returns:
         --------
         Dict[str, str]
-            Dictionary of prompt templates keyed by template name.
+            Dictionary of template names to template strings.
         """
         # In a real implementation, this would load templates from files
-        # For this implementation, we'll use hardcoded templates
-        
+        # For now, we'll define some basic templates inline
         templates = {
-            "strategy_generation": """
-                Generate a trading strategy for {ticker} using {strategy_type} approach.
-                
-                Historical data: {historical_data}
-                
-                Technical indicators: {technical_indicators}
-                
-                Market conditions: {market_conditions}
-                
-                Risk parameters: {risk_parameters}
-                
-                Generate a detailed trading strategy, including:
-                1. Entry conditions
-                2. Exit conditions
-                3. Position sizing
-                4. Risk management rules
-                5. Expected performance metrics
-                6. Chain of thought explanation for the strategy
-            """,
+            # Market analysis templates
+            "market_analysis": "Analyze the current market conditions for {market}. Consider the following data: {data}",
+            "technical_analysis": "Perform technical analysis on {ticker} using the following indicators: {indicators}. Data: {data}",
+            "sentiment_analysis": "Analyze the sentiment for {ticker} based on the following news and social media data: {data}",
             
-            "strategy_reasoning": """
-                Analyze the following trading strategy for {ticker} using {strategy_type} approach.
-                
-                Strategy details: {strategy}
-                
-                Technical analysis: {technical_analysis}
-                
-                Volatility analysis: {volatility_analysis}
-                
-                Regime analysis: {regime_analysis}
-                
-                News analysis: {news_analysis}
-                
-                Sentiment analysis: {sentiment_analysis}
-                
-                Provide a detailed reasoning for this strategy, including:
-                1. Summary of the strategy
-                2. Key points supporting the strategy
-                3. Market context
-                4. Risk assessment
-                5. Chain of thought explanation
-            """,
+            # Strategy templates
+            "strategy_generation": "Generate a trading strategy for {ticker} based on the following market conditions: {conditions}",
+            "strategy_optimization": "Optimize the following trading strategy for {ticker}: {strategy}. Consider these performance metrics: {metrics}",
+            "strategy_comparison": "Compare the following trading strategies for {ticker}: {strategies}. Which one is most suitable for current market conditions: {conditions}?",
             
-            "trade_signal": """
-                Analyze the current market conditions for {ticker} and determine if there is a trading signal.
-                
-                Current price: {current_price}
-                
-                Recent price action: {recent_price_action}
-                
-                Technical indicators: {technical_indicators}
-                
-                Market conditions: {market_conditions}
-                
-                News sentiment: {news_sentiment}
-                
-                Provide a detailed analysis, including:
-                1. Signal type (buy, sell, hold)
-                2. Signal strength (1-10)
-                3. Key reasons for the signal
-                4. Risk assessment
-                5. Chain of thought explanation
-            """,
+            # Signal templates
+            "signal_analysis": "Analyze the following trading signal for {ticker}: {signal}. Is this a valid signal given current market conditions: {conditions}?",
+            "entry_exit_points": "Determine optimal entry and exit points for {ticker} based on the following strategy: {strategy}. Current market conditions: {conditions}",
             
-            "trade_analysis": """
-                Analyze the following completed trade:
-                
-                Trade details: {trade}
-                
-                Historical data during trade: {historical_data}
-                
-                Market conditions during trade: {market_conditions}
-                
-                News during trade: {news}
-                
-                Provide a detailed analysis, including:
-                1. Summary of the trade performance
-                2. Key insights
-                3. Strengths of the execution
-                4. Weaknesses of the execution
-                5. Lessons learned
-                6. Suggestions for improvement
-                7. Chain of thought explanation
-            """,
+            # Risk templates
+            "risk_assessment": "Assess the risk of trading {ticker} with the following strategy: {strategy}. Consider market conditions: {conditions}",
+            "position_sizing": "Determine appropriate position size for {ticker} trade with account size {account_size}, risk tolerance {risk_tolerance}, and strategy: {strategy}",
             
-            "portfolio_analysis": """
-                Analyze the following portfolio:
-                
-                Portfolio details: {portfolio}
-                
-                Correlation analysis: {correlation_analysis}
-                
-                Market conditions: {market_conditions}
-                
-                Risk metrics: {risk_metrics}
-                
-                Provide a detailed analysis, including:
-                1. Summary of the portfolio composition and performance
-                2. Strengths of the portfolio
-                3. Weaknesses and risks
-                4. Recommendations for optimization
-                5. Chain of thought explanation
-            """,
+            # News analysis templates
+            "news_analysis": "Analyze the following news articles for {ticker}: {articles}. What is the likely impact on price?",
+            "earnings_report_analysis": "Analyze the following earnings report for {ticker}: {report_text}. What are the key takeaways and likely market reaction?",
+            "breaking_news_analysis": "Analyze this breaking news for {ticker}: {news_text}. What is the immediate trading implication?",
             
-            "news_analysis": """
-                Analyze the following news articles related to {ticker} or the broader market:
-                
-                News articles: {news_articles}
-                
-                Provide a detailed analysis, including:
-                1. Summary of key news
-                2. Sentiment analysis (bullish, bearish, neutral)
-                3. Potential impact on {ticker}
-                4. Potential market-moving events
-                5. Chain of thought explanation
-            """,
+            # Social media templates
+            "social_media_analysis": "Analyze the following social media posts about {ticker}: {posts}. What is the overall sentiment and potential impact?",
+            "social_sentiment_query": "What is the current social media sentiment for {ticker}? Consider the query: {query}",
+            "social_anomaly_detection": "Detect any anomalies in social media activity for {ticker}. Historical data: {historical_data}. Current data: {current_data}",
             
-            "risk_assessment": """
-                Assess the risk for the following position or portfolio:
-                
-                Position/Portfolio details: {position}
-                
-                Market conditions: {market_conditions}
-                
-                Volatility analysis: {volatility_analysis}
-                
-                Correlation analysis: {correlation_analysis}
-                
-                News sentiment: {news_sentiment}
-                
-                Provide a detailed risk assessment, including:
-                1. Overall risk level (1-10)
-                2. Key risk factors
-                3. Potential downside scenarios
-                4. Hedging recommendations
-                5. Position sizing recommendations
-                6. Chain of thought explanation
-            """,
+            # Narrative templates
+            "asset_narrative_generation": "Generate a comprehensive market narrative for {ticker} based on the following data: {data}",
+            "market_narrative_generation": "Generate a comprehensive market narrative based on the following data: {data}",
             
-            "market_regime": """
-                Analyze the current market regime based on the following data:
-                
-                Market indicators: {market_indicators}
-                
-                Volatility metrics: {volatility_metrics}
-                
-                Correlation data: {correlation_data}
-                
-                Economic indicators: {economic_indicators}
-                
-                Provide a detailed analysis of the current market regime, including:
-                1. Regime classification (trending, mean-reverting, volatile, etc.)
-                2. Key characteristics of the current regime
-                3. Historical comparison
-                4. Expected duration
-                5. Optimal trading strategies for this regime
-                6. Chain of thought explanation
-            """,
+            # Integration templates
+            "integrated_analysis": "Perform an integrated analysis of {ticker} combining quantitative data: {quantitative_data} and qualitative data: {qualitative_data}",
             
-            "backtest_review": """
-                Review the following backtest results:
-                
-                Strategy details: {strategy}
-                
-                Backtest results: {backtest_results}
-                
-                Performance metrics: {performance_metrics}
-                
-                Trade log: {trade_log}
-                
-                Provide a detailed review, including:
-                1. Summary of backtest performance
-                2. Strengths of the strategy
-                3. Weaknesses of the strategy
-                4. Market conditions where the strategy performs well
-                5. Market conditions where the strategy performs poorly
-                6. Recommendations for improvement
-                7. Chain of thought explanation
-            """,
+            # Conference call templates
+            "conference_call_analysis": "Analyze the following earnings call transcript for {ticker}: {transcript_text}. What are the key insights and management tone?",
             
-            "trader_assistance": """
-                Answer the following question from a trader:
-                
-                Question: {question}
-                
-                Context: {context}
-                
-                Provide a detailed and helpful response, including:
-                1. Direct answer to the question
-                2. Additional context and explanation
-                3. Related considerations
-                4. Chain of thought explanation
-            """,
+            # Trader assistance templates
+            "trading_qa": "Answer the following trading question: {question}. Consider these market conditions: {conditions}",
+            "strategy_explanation": "Explain the following trading strategy in simple terms: {strategy}",
             
-            "adaptive_learning": """
-                Analyze the following trading history to identify patterns and areas for improvement:
-                
-                Trading history: {trading_history}
-                
-                Performance metrics: {performance_metrics}
-                
-                Market conditions: {market_conditions}
-                
-                Provide a detailed analysis, including:
-                1. Identified patterns in trading behavior
-                2. Strengths to maintain
-                3. Weaknesses to address
-                4. Specific recommendations for improvement
-                5. Suggested parameter adjustments
-                6. Chain of thought explanation
-            """
+            # Backtest templates
+            "backtest_analysis": "Analyze the results of this backtest for {strategy}: {results}. What improvements can be made?",
+            "performance_attribution": "Attribute the performance of {strategy} to different factors based on these results: {results}",
+            
+            # Decision templates
+            "trading_decision": "Make a trading decision for {ticker} based on the following analysis: {analysis}. Current position: {position}",
+            "portfolio_allocation": "Determine optimal portfolio allocation given these assets: {assets} and market conditions: {conditions}"
         }
         
         return templates
-    
-    def generate_prompt(self, template_name: str, **kwargs) -> str:
-        """
-        Generate a prompt using the specified template and parameters.
-        
-        Parameters:
-        -----------
-        template_name : str
-            Name of the template to use.
-        **kwargs : dict
-            Parameters to fill in the template.
-            
-        Returns:
-        --------
-        str
-            The generated prompt.
-        """
-        if template_name not in self.templates:
-            self.logger.warning(f"Template '{template_name}' not found, using default")
-            template_name = "default"
-            
-        template = self.templates.get(template_name, "Analyze the following data: {data}")
-        
-        try:
-            prompt = template.format(**kwargs)
-            return prompt
-        except KeyError as e:
-            self.logger.error(f"Missing parameter in prompt template: {e}")
-            # Return a simplified prompt that can work with the available parameters
-            return f"Analyze the following data for {kwargs.get('ticker', 'the asset')}."
     
     def add_template(self, name: str, template: str) -> None:
         """
@@ -443,41 +299,71 @@ class PromptEngine:
         name : str
             Name of the template.
         template : str
-            The template string.
+            Template string with placeholders.
         """
+        self.logger.info(f"Adding template: {name}")
         self.templates[name] = template
-        self.logger.info(f"Added new prompt template: {name}")
     
-    def update_template(self, name: str, template: str) -> bool:
+    def get_template(self, name: str) -> str:
         """
-        Update an existing prompt template.
+        Get a prompt template by name.
         
         Parameters:
         -----------
         name : str
-            Name of the template to update.
-        template : str
-            The new template string.
+            Name of the template.
             
         Returns:
         --------
-        bool
-            True if the template was updated, False if it doesn't exist.
+        str
+            Template string.
         """
-        if name in self.templates:
-            self.templates[name] = template
-            self.logger.info(f"Updated prompt template: {name}")
-            return True
+        if name not in self.templates:
+            self.logger.warning(f"Template not found: {name}. Using default template.")
+            return "Analyze the following data: {data}"
         
-        self.logger.warning(f"Template '{name}' not found, cannot update")
-        return False
+        return self.templates[name]
+    
+    def generate_prompt(self, template_name: str, **kwargs) -> str:
+        """
+        Generate a prompt using a template and provided values.
+        
+        Parameters:
+        -----------
+        template_name : str
+            Name of the template to use.
+        **kwargs : Any
+            Values to fill in the template placeholders.
+            
+        Returns:
+        --------
+        str
+            Generated prompt.
+        """
+        self.logger.info(f"Generating prompt using template: {template_name}")
+        
+        # Get template
+        template = self.get_template(template_name)
+        
+        # Fill in template placeholders
+        try:
+            prompt = template.format(**kwargs)
+        except KeyError as e:
+            self.logger.warning(f"Missing value for placeholder: {e}")
+            # Replace missing placeholders with a default value
+            for key in e.args:
+                template = template.replace("{" + key + "}", f"<{key} not provided>")
+            prompt = template.format(**kwargs)
+        
+        return prompt
+
 
 class ChainOfThoughtProcessor:
     """
     Implements chain-of-thought reasoning for transparent decision making.
     
-    This class provides methods for generating and processing chain-of-thought
-    reasoning, enabling transparent and explainable decision making.
+    This class processes Gemma 3 outputs to extract the reasoning chain,
+    ensuring that trading decisions are transparent and explainable.
     """
     
     def __init__(self):
@@ -485,115 +371,132 @@ class ChainOfThoughtProcessor:
         self.logger = logging.getLogger("GemmaTrading.ChainOfThoughtProcessor")
         self.logger.info("Initialized ChainOfThoughtProcessor")
     
-    def generate_cot(self, model: Any, prompt: str, **kwargs) -> Dict[str, Any]:
+    def extract_reasoning_chain(self, response: str) -> List[str]:
         """
-        Generate chain-of-thought reasoning using the specified model and prompt.
+        Extract the reasoning chain from a Gemma 3 response.
         
         Parameters:
         -----------
-        model : Any
-            The Gemma 3 model to use.
+        response : str
+            Response from Gemma 3.
+            
+        Returns:
+        --------
+        List[str]
+            List of reasoning steps.
+        """
+        self.logger.info("Extracting reasoning chain from response")
+        
+        # Look for explicit reasoning markers
+        if "Reasoning:" in response and "Steps:" in response:
+            # Extract the section between "Reasoning:" and the next major section
+            reasoning_section = response.split("Reasoning:")[1].split("\n\n")[0]
+            
+            # Split into steps
+            steps = [step.strip() for step in reasoning_section.split("\n") if step.strip()]
+            
+            if steps:
+                return steps
+        
+        # If no explicit markers, try to identify numbered or bulleted steps
+        numbered_steps = []
+        
+        # Check for numbered steps (e.g., "1. First step")
+        numbered_pattern = r'\d+\.\s+(.*)'
+        numbered_matches = re.findall(numbered_pattern, response)
+        if numbered_matches:
+            numbered_steps = numbered_matches
+        
+        # Check for bulleted steps (e.g., "• First step" or "- First step")
+        if not numbered_steps:
+            bullet_pattern = r'[•\-\*]\s+(.*)'
+            bullet_matches = re.findall(bullet_pattern, response)
+            if bullet_matches:
+                numbered_steps = bullet_matches
+        
+        # If still no structured steps found, split by sentences as a fallback
+        if not numbered_steps:
+            # Simple sentence splitting (not perfect but a reasonable fallback)
+            sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', response) if s.strip()]
+            
+            # Filter out very short sentences and questions
+            numbered_steps = [s for s in sentences if len(s) > 15 and not s.endswith("?")]
+        
+        return numbered_steps
+    
+    def format_reasoning_chain(self, reasoning_chain: List[str], format_type: str = "markdown") -> str:
+        """
+        Format a reasoning chain for display.
+        
+        Parameters:
+        -----------
+        reasoning_chain : List[str]
+            List of reasoning steps.
+        format_type : str
+            Format type: "markdown", "html", or "text".
+            
+        Returns:
+        --------
+        str
+            Formatted reasoning chain.
+        """
+        self.logger.info(f"Formatting reasoning chain as {format_type}")
+        
+        if not reasoning_chain:
+            return "No reasoning steps available."
+        
+        if format_type == "markdown":
+            formatted = "## Reasoning Process\n\n"
+            for i, step in enumerate(reasoning_chain, 1):
+                formatted += f"{i}. {step}\n"
+        
+        elif format_type == "html":
+            formatted = "<h2>Reasoning Process</h2>\n<ol>\n"
+            for step in reasoning_chain:
+                formatted += f"  <li>{step}</li>\n"
+            formatted += "</ol>"
+        
+        else:  # text
+            formatted = "Reasoning Process:\n\n"
+            for i, step in enumerate(reasoning_chain, 1):
+                formatted += f"{i}. {step}\n"
+        
+        return formatted
+    
+    def enhance_prompt_for_cot(self, prompt: str) -> str:
+        """
+        Enhance a prompt to encourage chain-of-thought reasoning.
+        
+        Parameters:
+        -----------
         prompt : str
-            The prompt to use for generation.
-        **kwargs : dict
-            Additional parameters for the generation process.
+            Original prompt.
             
         Returns:
         --------
-        Dict[str, Any]
-            Dictionary containing the generated reasoning and metadata.
+        str
+            Enhanced prompt.
         """
-        # In a real implementation, this would use the actual model to generate reasoning
-        # For this implementation, we'll simulate the generation process
-        self.logger.info("Generating chain-of-thought reasoning")
+        self.logger.info("Enhancing prompt for chain-of-thought reasoning")
         
-        # Simulate the generation process
-        reasoning_steps = [
-            "First, I'll analyze the provided data to understand the context.",
-            "Next, I'll identify key patterns and trends in the data.",
-            "Then, I'll evaluate the implications of these patterns for trading decisions.",
-            "Finally, I'll formulate a conclusion based on the analysis."
-        ]
+        # Add instructions for chain-of-thought reasoning
+        cot_instructions = "\n\nPlease think through this step-by-step and explain your reasoning process. First analyze the relevant factors, then evaluate different options, and finally reach a conclusion based on your analysis."
         
-        conclusion = "Based on the analysis, the recommended action is to..."
+        # Add specific format instructions
+        format_instructions = "\n\nProvide your reasoning in the following format:\nReasoning:\n1. First consideration\n2. Second consideration\n...\n\nConclusion: Your final answer based on the reasoning above."
         
-        return {
-            "reasoning_steps": reasoning_steps,
-            "conclusion": conclusion,
-            "confidence": 0.85,
-            "timestamp": datetime.datetime.now().isoformat()
-        }
-    
-    def extract_decision(self, cot_result: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Extract the final decision from chain-of-thought reasoning.
+        # Combine original prompt with instructions
+        enhanced_prompt = prompt + cot_instructions + format_instructions
         
-        Parameters:
-        -----------
-        cot_result : Dict[str, Any]
-            The result of chain-of-thought reasoning.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            Dictionary containing the extracted decision and metadata.
-        """
-        # Extract the decision from the chain-of-thought result
-        conclusion = cot_result.get("conclusion", "")
-        confidence = cot_result.get("confidence", 0.0)
-        
-        # In a real implementation, this would parse the conclusion to extract structured decision
-        # For this implementation, we'll simulate the extraction process
-        
-        # Simulate decision extraction
-        if "buy" in conclusion.lower():
-            action = "buy"
-        elif "sell" in conclusion.lower():
-            action = "sell"
-        else:
-            action = "hold"
-        
-        return {
-            "action": action,
-            "confidence": confidence,
-            "reasoning": cot_result.get("reasoning_steps", []),
-            "conclusion": conclusion,
-            "timestamp": cot_result.get("timestamp", datetime.datetime.now().isoformat())
-        }
-    
-    def log_cot(self, cot_result: Dict[str, Any], context: Dict[str, Any]) -> None:
-        """
-        Log chain-of-thought reasoning for future reference and learning.
-        
-        Parameters:
-        -----------
-        cot_result : Dict[str, Any]
-            The result of chain-of-thought reasoning.
-        context : Dict[str, Any]
-            The context in which the reasoning was generated.
-        """
-        # In a real implementation, this would log the reasoning to a database or file
-        # For this implementation, we'll simulate the logging process
-        self.logger.info("Logging chain-of-thought reasoning")
-        
-        # Simulate logging
-        log_entry = {
-            "timestamp": datetime.datetime.now().isoformat(),
-            "context": context,
-            "reasoning": cot_result.get("reasoning_steps", []),
-            "conclusion": cot_result.get("conclusion", ""),
-            "confidence": cot_result.get("confidence", 0.0)
-        }
-        
-        # In a real implementation, this would save the log entry to a database or file
-        self.logger.info(f"Logged chain-of-thought reasoning: {log_entry['conclusion']}")
+        return enhanced_prompt
+
 
 class FeedbackLoop:
     """
     Manages the learning and adaptation process.
     
-    This class provides methods for collecting feedback on Gemma 3 outputs,
-    analyzing performance, and adapting the system over time.
+    This class implements a feedback loop that allows the system to learn from
+    trading outcomes and user feedback, continuously improving its performance.
     """
     
     def __init__(self, feedback_db_path: Optional[str] = None):
@@ -603,1659 +506,684 @@ class FeedbackLoop:
         Parameters:
         -----------
         feedback_db_path : str, optional
-            Path to the feedback database. If None, uses default path.
+            Path to the feedback database. If not provided, uses an in-memory database.
         """
         self.logger = logging.getLogger("GemmaTrading.FeedbackLoop")
-        self.feedback_db_path = feedback_db_path or os.environ.get("GEMMA_FEEDBACK_DB", "./feedback.db")
         
-        # In a real implementation, this would initialize a database connection
-        # For this implementation, we'll use an in-memory store
-        self.feedback_store = []
-        
-        self.logger.info(f"Initialized FeedbackLoop with feedback DB path: {self.feedback_db_path}")
-    
-    def record_feedback(self, output_id: str, actual_outcome: Any, expected_outcome: Any, 
-                        context: Dict[str, Any]) -> None:
-        """
-        Record feedback on a Gemma 3 output.
-        
-        Parameters:
-        -----------
-        output_id : str
-            Identifier for the output being evaluated.
-        actual_outcome : Any
-            The actual outcome that occurred.
-        expected_outcome : Any
-            The outcome that was expected or desired.
-        context : Dict[str, Any]
-            The context in which the output was generated.
-        """
-        # In a real implementation, this would store the feedback in a database
-        # For this implementation, we'll use an in-memory store
-        
-        feedback_entry = {
-            "output_id": output_id,
-            "timestamp": datetime.datetime.now().isoformat(),
-            "actual_outcome": actual_outcome,
-            "expected_outcome": expected_outcome,
-            "context": context,
-            "analysis": None  # Will be filled by analyze_feedback
+        # Set up feedback storage
+        self.feedback_db_path = feedback_db_path
+        self.feedback_data = {
+            "trade_feedback": [],
+            "strategy_feedback": [],
+            "user_feedback": []
         }
         
-        self.feedback_store.append(feedback_entry)
-        self.logger.info(f"Recorded feedback for output {output_id}")
+        self.logger.info("Initialized FeedbackLoop")
     
-    def analyze_feedback(self, output_id: Optional[str] = None) -> Dict[str, Any]:
+    def record_trade_outcome(self, trade_data: Dict[str, Any], outcome: Dict[str, Any]) -> None:
         """
-        Analyze feedback to identify patterns and areas for improvement.
+        Record the outcome of a trade for learning.
         
         Parameters:
         -----------
-        output_id : str, optional
-            Identifier for a specific output to analyze. If None, analyzes all feedback.
-            
+        trade_data : Dict[str, Any]
+            Data about the trade.
+        outcome : Dict[str, Any]
+            Outcome of the trade.
+        """
+        self.logger.info(f"Recording trade outcome for trade ID: {trade_data.get('id', 'unknown')}")
+        
+        # Create feedback entry
+        feedback_entry = {
+            "timestamp": datetime.datetime.now().isoformat(),
+            "trade_data": trade_data,
+            "outcome": outcome,
+            "processed": False
+        }
+        
+        # Add to feedback data
+        self.feedback_data["trade_feedback"].append(feedback_entry)
+        
+        # In a real implementation, this would also persist to disk
+        if self.feedback_db_path:
+            self._save_feedback_data()
+    
+    def record_strategy_performance(self, strategy_data: Dict[str, Any], performance: Dict[str, Any]) -> None:
+        """
+        Record the performance of a strategy for learning.
+        
+        Parameters:
+        -----------
+        strategy_data : Dict[str, Any]
+            Data about the strategy.
+        performance : Dict[str, Any]
+            Performance metrics of the strategy.
+        """
+        self.logger.info(f"Recording strategy performance for strategy: {strategy_data.get('name', 'unknown')}")
+        
+        # Create feedback entry
+        feedback_entry = {
+            "timestamp": datetime.datetime.now().isoformat(),
+            "strategy_data": strategy_data,
+            "performance": performance,
+            "processed": False
+        }
+        
+        # Add to feedback data
+        self.feedback_data["strategy_feedback"].append(feedback_entry)
+        
+        # In a real implementation, this would also persist to disk
+        if self.feedback_db_path:
+            self._save_feedback_data()
+    
+    def record_user_feedback(self, feedback_type: str, content: str, rating: int, context: Dict[str, Any]) -> None:
+        """
+        Record user feedback for learning.
+        
+        Parameters:
+        -----------
+        feedback_type : str
+            Type of feedback (e.g., "strategy", "signal", "explanation").
+        content : str
+            Content that received feedback.
+        rating : int
+            User rating (1-5).
+        context : Dict[str, Any]
+            Context in which the feedback was given.
+        """
+        self.logger.info(f"Recording user feedback of type: {feedback_type}")
+        
+        # Create feedback entry
+        feedback_entry = {
+            "timestamp": datetime.datetime.now().isoformat(),
+            "feedback_type": feedback_type,
+            "content": content,
+            "rating": rating,
+            "context": context,
+            "processed": False
+        }
+        
+        # Add to feedback data
+        self.feedback_data["user_feedback"].append(feedback_entry)
+        
+        # In a real implementation, this would also persist to disk
+        if self.feedback_db_path:
+            self._save_feedback_data()
+    
+    def process_feedback(self) -> Dict[str, Any]:
+        """
+        Process collected feedback to generate learning insights.
+        
         Returns:
         --------
         Dict[str, Any]
-            Analysis results.
+            Learning insights derived from feedback.
         """
-        # In a real implementation, this would analyze feedback data from the database
-        # For this implementation, we'll simulate the analysis process
+        self.logger.info("Processing feedback to generate learning insights")
         
-        self.logger.info(f"Analyzing feedback for output {output_id if output_id else 'all outputs'}")
+        # Count unprocessed feedback
+        unprocessed_trade_feedback = sum(1 for f in self.feedback_data["trade_feedback"] if not f["processed"])
+        unprocessed_strategy_feedback = sum(1 for f in self.feedback_data["strategy_feedback"] if not f["processed"])
+        unprocessed_user_feedback = sum(1 for f in self.feedback_data["user_feedback"] if not f["processed"])
         
-        # Filter feedback entries if output_id is provided
-        if output_id:
-            entries = [entry for entry in self.feedback_store if entry["output_id"] == output_id]
-        else:
-            entries = self.feedback_store
+        self.logger.info(f"Processing {unprocessed_trade_feedback} trade feedback entries, "
+                        f"{unprocessed_strategy_feedback} strategy feedback entries, and "
+                        f"{unprocessed_user_feedback} user feedback entries")
         
-        if not entries:
-            return {"status": "no_data", "message": "No feedback data available for analysis"}
+        # In a real implementation, this would analyze the feedback to extract insights
+        # For now, we'll create a simple summary
         
-        # Simulate analysis
-        # In a real implementation, this would perform sophisticated analysis
+        # Process trade feedback
+        trade_insights = self._process_trade_feedback()
         
-        # Calculate simple accuracy metric
-        correct_count = sum(1 for entry in entries 
-                           if str(entry["actual_outcome"]) == str(entry["expected_outcome"]))
-        accuracy = correct_count / len(entries) if entries else 0
+        # Process strategy feedback
+        strategy_insights = self._process_strategy_feedback()
         
-        # Identify common patterns in incorrect outputs
-        incorrect_entries = [entry for entry in entries 
-                            if str(entry["actual_outcome"]) != str(entry["expected_outcome"])]
+        # Process user feedback
+        user_insights = self._process_user_feedback()
         
-        # In a real implementation, this would identify actual patterns
-        # For this implementation, we'll simulate pattern identification
-        common_patterns = ["Pattern 1", "Pattern 2"] if incorrect_entries else []
-        
-        analysis_result = {
-            "accuracy": accuracy,
-            "total_entries": len(entries),
-            "correct_count": correct_count,
-            "incorrect_count": len(entries) - correct_count,
-            "common_patterns": common_patterns,
-            "recommendations": [
-                "Recommendation 1",
-                "Recommendation 2"
-            ] if incorrect_entries else ["No improvements needed"],
+        # Combine insights
+        insights = {
+            "trade_insights": trade_insights,
+            "strategy_insights": strategy_insights,
+            "user_insights": user_insights,
             "timestamp": datetime.datetime.now().isoformat()
         }
         
-        # Update the analysis field in the feedback entries
-        for entry in entries:
-            entry["analysis"] = analysis_result
+        # Mark feedback as processed
+        for feedback_type in self.feedback_data:
+            for entry in self.feedback_data[feedback_type]:
+                if not entry["processed"]:
+                    entry["processed"] = True
         
-        return analysis_result
+        # In a real implementation, this would also persist to disk
+        if self.feedback_db_path:
+            self._save_feedback_data()
+        
+        return insights
     
-    def apply_learning(self, analysis_result: Dict[str, Any], model_manager: ModelManager,
-                      prompt_engine: PromptEngine) -> bool:
+    def _process_trade_feedback(self) -> Dict[str, Any]:
         """
-        Apply learning from feedback analysis to improve the system.
+        Process trade feedback to generate insights.
         
-        Parameters:
-        -----------
-        analysis_result : Dict[str, Any]
-            Results of feedback analysis.
-        model_manager : ModelManager
-            Instance of ModelManager to update if needed.
-        prompt_engine : PromptEngine
-            Instance of PromptEngine to update if needed.
-            
         Returns:
         --------
-        bool
-            True if improvements were applied, False otherwise.
+        Dict[str, Any]
+            Insights from trade feedback.
         """
-        # In a real implementation, this would apply actual improvements
-        # For this implementation, we'll simulate the improvement process
+        # Get unprocessed trade feedback
+        unprocessed = [f for f in self.feedback_data["trade_feedback"] if not f["processed"]]
         
-        self.logger.info("Applying learning from feedback analysis")
+        if not unprocessed:
+            return {"message": "No trade feedback to process"}
         
-        if analysis_result.get("status") == "no_data":
-            self.logger.info("No data available for learning")
-            return False
+        # Calculate success rate
+        successful_trades = sum(1 for f in unprocessed if f["outcome"].get("profit", 0) > 0)
+        success_rate = successful_trades / len(unprocessed) if unprocessed else 0
         
-        if analysis_result.get("accuracy", 0) > 0.95:
-            self.logger.info("System is already performing well, no improvements needed")
-            return False
+        # Calculate average profit/loss
+        total_profit = sum(f["outcome"].get("profit", 0) for f in unprocessed)
+        avg_profit = total_profit / len(unprocessed) if unprocessed else 0
         
-        # Simulate improvements
-        # In a real implementation, this would make actual improvements
+        # Identify common factors in successful trades
+        successful_trade_factors = {}
+        for f in unprocessed:
+            if f["outcome"].get("profit", 0) > 0:
+                for key, value in f["trade_data"].items():
+                    if key not in successful_trade_factors:
+                        successful_trade_factors[key] = []
+                    successful_trade_factors[key].append(value)
         
-        # Example: Update prompt templates based on analysis
-        for i, recommendation in enumerate(analysis_result.get("recommendations", [])):
-            if "prompt" in recommendation.lower():
-                # Simulate updating a prompt template
-                template_name = f"template_{i}"
-                prompt_engine.update_template(template_name, f"Improved template based on recommendation: {recommendation}")
-                self.logger.info(f"Updated prompt template {template_name} based on feedback")
+        # Simplify to most common values
+        common_factors = {}
+        for key, values in successful_trade_factors.items():
+            if isinstance(values[0], (str, bool, int, float)):
+                # Count occurrences
+                counter = Counter(values)
+                # Get most common value
+                most_common = counter.most_common(1)
+                if most_common:
+                    value, count = most_common[0]
+                    # Only include if it appears in at least 50% of successful trades
+                    if count / successful_trades >= 0.5:
+                        common_factors[key] = value
         
-        self.logger.info("Applied learning from feedback analysis")
-        return True
+        return {
+            "success_rate": success_rate,
+            "avg_profit": avg_profit,
+            "total_profit": total_profit,
+            "common_success_factors": common_factors,
+            "processed_count": len(unprocessed)
+        }
+    
+    def _process_strategy_feedback(self) -> Dict[str, Any]:
+        """
+        Process strategy feedback to generate insights.
+        
+        Returns:
+        --------
+        Dict[str, Any]
+            Insights from strategy feedback.
+        """
+        # Get unprocessed strategy feedback
+        unprocessed = [f for f in self.feedback_data["strategy_feedback"] if not f["processed"]]
+        
+        if not unprocessed:
+            return {"message": "No strategy feedback to process"}
+        
+        # Calculate average performance metrics
+        avg_metrics = {}
+        for metric in ["sharpe_ratio", "win_rate", "profit_factor", "max_drawdown"]:
+            values = [f["performance"].get(metric, 0) for f in unprocessed]
+            avg_metrics[f"avg_{metric}"] = sum(values) / len(values) if values else 0
+        
+        # Identify best performing strategies
+        strategies = [(f["strategy_data"].get("name", "unknown"), f["performance"].get("sharpe_ratio", 0)) 
+                     for f in unprocessed]
+        strategies.sort(key=lambda x: x[1], reverse=True)
+        best_strategies = strategies[:3] if len(strategies) >= 3 else strategies
+        
+        return {
+            "performance_metrics": avg_metrics,
+            "best_strategies": best_strategies,
+            "processed_count": len(unprocessed)
+        }
+    
+    def _process_user_feedback(self) -> Dict[str, Any]:
+        """
+        Process user feedback to generate insights.
+        
+        Returns:
+        --------
+        Dict[str, Any]
+            Insights from user feedback.
+        """
+        # Get unprocessed user feedback
+        unprocessed = [f for f in self.feedback_data["user_feedback"] if not f["processed"]]
+        
+        if not unprocessed:
+            return {"message": "No user feedback to process"}
+        
+        # Calculate average ratings by feedback type
+        ratings_by_type = {}
+        for f in unprocessed:
+            feedback_type = f["feedback_type"]
+            if feedback_type not in ratings_by_type:
+                ratings_by_type[feedback_type] = []
+            ratings_by_type[feedback_type].append(f["rating"])
+        
+        avg_ratings = {
+            feedback_type: sum(ratings) / len(ratings) if ratings else 0
+            for feedback_type, ratings in ratings_by_type.items()
+        }
+        
+        # Identify low-rated content for improvement
+        low_rated = [f for f in unprocessed if f["rating"] <= 2]
+        low_rated_types = Counter([f["feedback_type"] for f in low_rated])
+        
+        return {
+            "avg_ratings": avg_ratings,
+            "low_rated_types": dict(low_rated_types),
+            "overall_avg_rating": sum(f["rating"] for f in unprocessed) / len(unprocessed) if unprocessed else 0,
+            "processed_count": len(unprocessed)
+        }
+    
+    def _save_feedback_data(self) -> None:
+        """Save feedback data to disk."""
+        if not self.feedback_db_path:
+            return
+        
+        try:
+            with open(self.feedback_db_path, 'w') as f:
+                json.dump(self.feedback_data, f)
+            self.logger.info(f"Saved feedback data to {self.feedback_db_path}")
+        except Exception as e:
+            self.logger.error(f"Failed to save feedback data: {e}")
+    
+    def _load_feedback_data(self) -> None:
+        """Load feedback data from disk."""
+        if not self.feedback_db_path or not os.path.exists(self.feedback_db_path):
+            return
+        
+        try:
+            with open(self.feedback_db_path, 'r') as f:
+                self.feedback_data = json.load(f)
+            self.logger.info(f"Loaded feedback data from {self.feedback_db_path}")
+        except Exception as e:
+            self.logger.error(f"Failed to load feedback data: {e}")
+
 
 class DataIntegration:
     """
     Handles integration of various data sources for Gemma 3 analysis.
     
-    This class provides methods for collecting, preprocessing, and integrating
-    data from various sources for use in Gemma 3 analysis.
+    This class provides methods to prepare and format different types of data
+    for analysis by Gemma 3, ensuring that the model receives well-structured
+    inputs for optimal performance.
     """
     
     def __init__(self):
         """Initialize the DataIntegration."""
         self.logger = logging.getLogger("GemmaTrading.DataIntegration")
-        self.data_sources = {}
-        self.data_cache = {}
-        
         self.logger.info("Initialized DataIntegration")
     
-    def register_data_source(self, name: str, source_func: Callable, 
-                            refresh_interval: int = 3600) -> None:
+    def prepare_market_data(self, data: pd.DataFrame) -> str:
         """
-        Register a data source for integration.
+        Prepare market data for Gemma 3 analysis.
         
         Parameters:
         -----------
-        name : str
-            Name of the data source.
-        source_func : Callable
-            Function that returns data from the source.
-        refresh_interval : int, optional
-            Interval in seconds at which to refresh data from this source.
-            Default is 3600 (1 hour).
-        """
-        self.data_sources[name] = {
-            "function": source_func,
-            "refresh_interval": refresh_interval,
-            "last_refresh": None
-        }
-        
-        self.logger.info(f"Registered data source: {name}")
-    
-    def get_data(self, source_name: str, force_refresh: bool = False, **kwargs) -> Any:
-        """
-        Get data from the specified source.
-        
-        Parameters:
-        -----------
-        source_name : str
-            Name of the data source.
-        force_refresh : bool, optional
-            If True, forces a refresh of the data even if the cache is still valid.
-            Default is False.
-        **kwargs : dict
-            Additional parameters to pass to the source function.
+        data : pd.DataFrame
+            Market data DataFrame.
             
         Returns:
         --------
-        Any
-            The data from the source.
+        str
+            Formatted market data string.
         """
-        if source_name not in self.data_sources:
-            self.logger.error(f"Data source '{source_name}' not found")
-            return None
+        self.logger.info("Preparing market data for analysis")
         
-        source = self.data_sources[source_name]
-        cache_key = f"{source_name}_{json.dumps(kwargs, sort_keys=True)}"
+        # Check if data is empty
+        if data.empty:
+            return "No market data available."
         
-        # Check if we need to refresh the data
-        now = datetime.datetime.now()
-        needs_refresh = (
-            force_refresh or
-            cache_key not in self.data_cache or
-            source["last_refresh"] is None or
-            (now - source["last_refresh"]).total_seconds() > source["refresh_interval"]
-        )
+        # Format data as a string
+        data_str = "Market Data:\n\n"
         
-        if needs_refresh:
-            self.logger.info(f"Refreshing data from source: {source_name}")
-            try:
-                data = source["function"](**kwargs)
-                self.data_cache[cache_key] = data
-                source["last_refresh"] = now
-                return data
-            except Exception as e:
-                self.logger.error(f"Error refreshing data from source '{source_name}': {e}")
-                # Return cached data if available, otherwise None
-                return self.data_cache.get(cache_key)
+        # Add summary statistics
+        data_str += "Summary Statistics:\n"
+        data_str += f"Start Date: {data.index[0].strftime('%Y-%m-%d')}\n"
+        data_str += f"End Date: {data.index[-1].strftime('%Y-%m-%d')}\n"
+        data_str += f"Number of Trading Days: {len(data)}\n"
         
-        return self.data_cache[cache_key]
+        if 'Close' in data.columns:
+            data_str += f"Starting Price: {data['Close'].iloc[0]:.2f}\n"
+            data_str += f"Ending Price: {data['Close'].iloc[-1]:.2f}\n"
+            data_str += f"Price Change: {data['Close'].iloc[-1] - data['Close'].iloc[0]:.2f} ({(data['Close'].iloc[-1] / data['Close'].iloc[0] - 1) * 100:.2f}%)\n"
+        
+        # Add recent data points
+        data_str += "\nRecent Data Points:\n"
+        recent_data = data.tail(5).reset_index()
+        for _, row in recent_data.iterrows():
+            date_str = row['Date'].strftime('%Y-%m-%d') if isinstance(row['Date'], (datetime.datetime, pd.Timestamp)) else str(row['Date'])
+            data_str += f"{date_str}: "
+            for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
+                if col in row:
+                    if col == 'Volume':
+                        data_str += f"{col}: {row[col]:,.0f} "
+                    else:
+                        data_str += f"{col}: {row[col]:.2f} "
+            data_str += "\n"
+        
+        return data_str
     
-    def integrate_data(self, sources: List[str], **kwargs) -> Dict[str, Any]:
+    def prepare_technical_indicators(self, data: pd.DataFrame, indicators: Dict[str, pd.Series]) -> str:
         """
-        Integrate data from multiple sources.
+        Prepare technical indicators for Gemma 3 analysis.
         
         Parameters:
         -----------
-        sources : List[str]
-            List of data source names to integrate.
-        **kwargs : dict
-            Additional parameters to pass to the source functions.
+        data : pd.DataFrame
+            Market data DataFrame.
+        indicators : Dict[str, pd.Series]
+            Dictionary of indicator names to indicator series.
             
         Returns:
         --------
-        Dict[str, Any]
-            Integrated data from all sources.
+        str
+            Formatted technical indicators string.
         """
-        integrated_data = {}
+        self.logger.info("Preparing technical indicators for analysis")
         
-        for source_name in sources:
-            source_data = self.get_data(source_name, **kwargs)
-            if source_data is not None:
-                integrated_data[source_name] = source_data
+        # Check if data is empty
+        if data.empty or not indicators:
+            return "No technical indicators available."
         
-        return integrated_data
+        # Format indicators as a string
+        indicators_str = "Technical Indicators:\n\n"
+        
+        # Add recent indicator values
+        recent_dates = data.index[-5:]
+        
+        for indicator_name, indicator_series in indicators.items():
+            indicators_str += f"{indicator_name}:\n"
+            
+            for date in recent_dates:
+                if date in indicator_series.index:
+                    date_str = date.strftime('%Y-%m-%d') if isinstance(date, (datetime.datetime, pd.Timestamp)) else str(date)
+                    value = indicator_series[date]
+                    indicators_str += f"  {date_str}: {value:.4f}\n"
+            
+            indicators_str += "\n"
+        
+        # Add indicator interpretations
+        indicators_str += "Indicator Interpretations:\n"
+        
+        for indicator_name in indicators:
+            interpretation = self._get_indicator_interpretation(indicator_name, indicators[indicator_name])
+            indicators_str += f"{indicator_name}: {interpretation}\n"
+        
+        return indicators_str
+    
+    def prepare_news_data(self, news_items: List[Dict[str, Any]]) -> str:
+        """
+        Prepare news data for Gemma 3 analysis.
+        
+        Parameters:
+        -----------
+        news_items : List[Dict[str, Any]]
+            List of news items.
+            
+        Returns:
+        --------
+        str
+            Formatted news data string.
+        """
+        self.logger.info("Preparing news data for analysis")
+        
+        # Check if news items are empty
+        if not news_items:
+            return "No news data available."
+        
+        # Format news as a string
+        news_str = "News Data:\n\n"
+        
+        for i, item in enumerate(news_items, 1):
+            news_str += f"Article {i}:\n"
+            news_str += f"Title: {item.get('title', 'No Title')}\n"
+            news_str += f"Date: {item.get('date', 'No Date')}\n"
+            news_str += f"Source: {item.get('source', 'No Source')}\n"
+            
+            # Truncate content if too long
+            content = item.get('content', 'No Content')
+            if len(content) > 500:
+                content = content[:500] + "..."
+            
+            news_str += f"Content: {content}\n\n"
+        
+        return news_str
+    
+    def prepare_social_data(self, social_posts: List[Dict[str, Any]]) -> str:
+        """
+        Prepare social media data for Gemma 3 analysis.
+        
+        Parameters:
+        -----------
+        social_posts : List[Dict[str, Any]]
+            List of social media posts.
+            
+        Returns:
+        --------
+        str
+            Formatted social media data string.
+        """
+        self.logger.info("Preparing social media data for analysis")
+        
+        # Check if social posts are empty
+        if not social_posts:
+            return "No social media data available."
+        
+        # Format social posts as a string
+        social_str = "Social Media Data:\n\n"
+        
+        for i, post in enumerate(social_posts, 1):
+            social_str += f"Post {i}:\n"
+            social_str += f"Platform: {post.get('platform', 'Unknown')}\n"
+            social_str += f"User: {post.get('user', 'Anonymous')}\n"
+            social_str += f"Date: {post.get('date', 'No Date')}\n"
+            social_str += f"Content: {post.get('content', 'No Content')}\n"
+            social_str += f"Likes: {post.get('likes', 0)}, Shares: {post.get('shares', 0)}, Comments: {post.get('comments', 0)}\n\n"
+        
+        return social_str
+    
+    def prepare_earnings_data(self, earnings_data: Dict[str, Any]) -> str:
+        """
+        Prepare earnings data for Gemma 3 analysis.
+        
+        Parameters:
+        -----------
+        earnings_data : Dict[str, Any]
+            Earnings data.
+            
+        Returns:
+        --------
+        str
+            Formatted earnings data string.
+        """
+        self.logger.info("Preparing earnings data for analysis")
+        
+        # Check if earnings data is empty
+        if not earnings_data:
+            return "No earnings data available."
+        
+        # Format earnings data as a string
+        earnings_str = "Earnings Data:\n\n"
+        
+        # Add basic earnings information
+        earnings_str += "Basic Information:\n"
+        earnings_str += f"Company: {earnings_data.get('company', 'Unknown')}\n"
+        earnings_str += f"Fiscal Quarter: {earnings_data.get('fiscal_quarter', 'Unknown')}\n"
+        earnings_str += f"Report Date: {earnings_data.get('report_date', 'Unknown')}\n\n"
+        
+        # Add key metrics
+        earnings_str += "Key Metrics:\n"
+        
+        metrics = earnings_data.get('metrics', {})
+        for metric, value in metrics.items():
+            estimate = metrics.get(f"{metric}_estimate", "N/A")
+            surprise = metrics.get(f"{metric}_surprise", "N/A")
+            
+            earnings_str += f"{metric.capitalize()}: {value} (Estimate: {estimate}, Surprise: {surprise})\n"
+        
+        # Add guidance
+        guidance = earnings_data.get('guidance', {})
+        if guidance:
+            earnings_str += "\nGuidance:\n"
+            for metric, value in guidance.items():
+                earnings_str += f"{metric.capitalize()}: {value}\n"
+        
+        # Add highlights
+        highlights = earnings_data.get('highlights', [])
+        if highlights:
+            earnings_str += "\nHighlights:\n"
+            for highlight in highlights:
+                earnings_str += f"- {highlight}\n"
+        
+        return earnings_str
+    
+    def prepare_combined_data(self, data_sources: Dict[str, Any]) -> str:
+        """
+        Prepare combined data from multiple sources for Gemma 3 analysis.
+        
+        Parameters:
+        -----------
+        data_sources : Dict[str, Any]
+            Dictionary of data sources.
+            
+        Returns:
+        --------
+        str
+            Formatted combined data string.
+        """
+        self.logger.info("Preparing combined data for analysis")
+        
+        # Format combined data as a string
+        combined_str = "Combined Data for Analysis:\n\n"
+        
+        # Add market data if available
+        if 'market_data' in data_sources:
+            market_data = data_sources['market_data']
+            if isinstance(market_data, pd.DataFrame) and not market_data.empty:
+                combined_str += self.prepare_market_data(market_data) + "\n\n"
+        
+        # Add technical indicators if available
+        if 'indicators' in data_sources:
+            indicators = data_sources['indicators']
+            if indicators and 'market_data' in data_sources:
+                combined_str += self.prepare_technical_indicators(data_sources['market_data'], indicators) + "\n\n"
+        
+        # Add news data if available
+        if 'news' in data_sources:
+            news_items = data_sources['news']
+            if news_items:
+                combined_str += self.prepare_news_data(news_items) + "\n\n"
+        
+        # Add social data if available
+        if 'social' in data_sources:
+            social_posts = data_sources['social']
+            if social_posts:
+                combined_str += self.prepare_social_data(social_posts) + "\n\n"
+        
+        # Add earnings data if available
+        if 'earnings' in data_sources:
+            earnings_data = data_sources['earnings']
+            if earnings_data:
+                combined_str += self.prepare_earnings_data(earnings_data) + "\n\n"
+        
+        return combined_str
+    
+    def _get_indicator_interpretation(self, indicator_name: str, indicator_series: pd.Series) -> str:
+        """
+        Get interpretation for a technical indicator.
+        
+        Parameters:
+        -----------
+        indicator_name : str
+            Name of the indicator.
+        indicator_series : pd.Series
+            Indicator values.
+            
+        Returns:
+        --------
+        str
+            Indicator interpretation.
+        """
+        # Get the most recent value
+        if indicator_series.empty:
+            return "No data available."
+        
+        recent_value = indicator_series.iloc[-1]
+        
+        # Simple interpretations for common indicators
+        indicator_name_lower = indicator_name.lower()
+        
+        if 'rsi' in indicator_name_lower:
+            if recent_value > 70:
+                return f"Overbought ({recent_value:.2f})"
+            elif recent_value < 30:
+                return f"Oversold ({recent_value:.2f})"
+            else:
+                return f"Neutral ({recent_value:.2f})"
+        
+        elif 'macd' in indicator_name_lower:
+            # For MACD, we need both the MACD line and signal line
+            # This is a simplified interpretation
+            if 'signal' in indicator_name_lower:
+                return f"Signal line value: {recent_value:.4f}"
+            elif 'histogram' in indicator_name_lower:
+                if recent_value > 0:
+                    return f"Bullish momentum ({recent_value:.4f})"
+                else:
+                    return f"Bearish momentum ({recent_value:.4f})"
+            else:
+                return f"MACD line value: {recent_value:.4f}"
+        
+        elif 'bollinger' in indicator_name_lower:
+            if 'upper' in indicator_name_lower:
+                return f"Upper band: {recent_value:.2f}"
+            elif 'lower' in indicator_name_lower:
+                return f"Lower band: {recent_value:.2f}"
+            else:
+                return f"Middle band: {recent_value:.2f}"
+        
+        elif 'ma' in indicator_name_lower or 'sma' in indicator_name_lower or 'ema' in indicator_name_lower:
+            # For moving averages, we need price data for comparison
+            # This is a simplified interpretation
+            return f"Current value: {recent_value:.2f}"
+        
+        # Default interpretation
+        return f"Current value: {recent_value:.4f}"
 
-class StrategyGenerator:
-    """
-    Generates and refines trading strategies using Gemma 3.
-    
-    This class provides methods for generating new trading strategies based on
-    historical data and market conditions, as well as refining existing strategies.
-    """
-    
-    def __init__(self, gemma_core: Optional['GemmaCore'] = None):
-        """
-        Initialize the StrategyGenerator.
-        
-        Parameters:
-        -----------
-        gemma_core : GemmaCore, optional
-            Instance of GemmaCore for accessing Gemma 3 capabilities.
-            If None, uses the default instance.
-        """
-        self.logger = logging.getLogger("GemmaTrading.StrategyGenerator")
-        self.gemma_core = gemma_core
-        
-        self.logger.info("Initialized StrategyGenerator")
-    
-    def generate_strategy(self, ticker: str, strategy_type: str, 
-                         historical_data: pd.DataFrame, 
-                         technical_indicators: Dict[str, Any],
-                         market_conditions: Dict[str, Any],
-                         risk_parameters: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Generate a new trading strategy.
-        
-        Parameters:
-        -----------
-        ticker : str
-            Ticker symbol for the asset.
-        strategy_type : str
-            Type of strategy to generate (e.g., "swing", "trend", "mean_reversion").
-        historical_data : pd.DataFrame
-            Historical price and volume data.
-        technical_indicators : Dict[str, Any]
-            Technical indicators for the asset.
-        market_conditions : Dict[str, Any]
-            Current market conditions.
-        risk_parameters : Dict[str, Any]
-            Risk parameters for the strategy.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            The generated strategy.
-        """
-        if self.gemma_core is None:
-            self.logger.error("GemmaCore instance not provided")
-            return {"error": "GemmaCore instance not provided"}
-        
-        self.logger.info(f"Generating {strategy_type} strategy for {ticker}")
-        
-        # Prepare data for Gemma 3
-        # In a real implementation, this would prepare the data in a format suitable for Gemma 3
-        
-        # Generate prompt for strategy generation
-        prompt = self.gemma_core.prompt_engine.generate_prompt(
-            "strategy_generation",
-            ticker=ticker,
-            strategy_type=strategy_type,
-            historical_data=str(historical_data.tail(10)),  # Simplified for this implementation
-            technical_indicators=str(technical_indicators),
-            market_conditions=str(market_conditions),
-            risk_parameters=str(risk_parameters)
-        )
-        
-        # Get the appropriate model for strategy generation
-        model = self.gemma_core.model_manager.get_model("strategy_generation")
-        
-        # Generate strategy using chain-of-thought reasoning
-        cot_result = self.gemma_core.cot_processor.generate_cot(model, prompt)
-        
-        # Extract strategy from chain-of-thought result
-        # In a real implementation, this would parse the result to extract a structured strategy
-        # For this implementation, we'll simulate the extraction process
-        
-        # Simulate strategy extraction
-        strategy = {
-            "ticker": ticker,
-            "strategy_type": strategy_type,
-            "entry_conditions": [
-                "Condition 1",
-                "Condition 2"
-            ],
-            "exit_conditions": [
-                "Condition 1",
-                "Condition 2"
-            ],
-            "position_sizing": "2% risk per trade",
-            "risk_management": {
-                "stop_loss": "2 ATR",
-                "take_profit": "3 ATR",
-                "max_drawdown": "5%"
-            },
-            "expected_performance": {
-                "win_rate": 0.6,
-                "profit_factor": 1.8,
-                "sharpe_ratio": 1.2
-            },
-            "reasoning": cot_result.get("reasoning_steps", []),
-            "conclusion": cot_result.get("conclusion", ""),
-            "timestamp": datetime.datetime.now().isoformat()
-        }
-        
-        return strategy
-    
-    def refine_strategy(self, strategy: Dict[str, Any], 
-                       performance_metrics: Dict[str, Any],
-                       market_conditions: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Refine an existing trading strategy based on performance and market conditions.
-        
-        Parameters:
-        -----------
-        strategy : Dict[str, Any]
-            The existing strategy to refine.
-        performance_metrics : Dict[str, Any]
-            Performance metrics for the strategy.
-        market_conditions : Dict[str, Any]
-            Current market conditions.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            The refined strategy.
-        """
-        if self.gemma_core is None:
-            self.logger.error("GemmaCore instance not provided")
-            return {"error": "GemmaCore instance not provided"}
-        
-        ticker = strategy.get("ticker", "unknown")
-        strategy_type = strategy.get("strategy_type", "unknown")
-        
-        self.logger.info(f"Refining {strategy_type} strategy for {ticker}")
-        
-        # Prepare data for Gemma 3
-        # In a real implementation, this would prepare the data in a format suitable for Gemma 3
-        
-        # Generate prompt for strategy refinement
-        prompt = self.gemma_core.prompt_engine.generate_prompt(
-            "strategy_refinement",
-            strategy=str(strategy),
-            performance_metrics=str(performance_metrics),
-            market_conditions=str(market_conditions)
-        )
-        
-        # Get the appropriate model for strategy refinement
-        model = self.gemma_core.model_manager.get_model("strategy_generation")
-        
-        # Generate refinements using chain-of-thought reasoning
-        cot_result = self.gemma_core.cot_processor.generate_cot(model, prompt)
-        
-        # Extract refinements from chain-of-thought result
-        # In a real implementation, this would parse the result to extract structured refinements
-        # For this implementation, we'll simulate the extraction process
-        
-        # Simulate refinement extraction
-        refined_strategy = strategy.copy()
-        
-        # Apply simulated refinements
-        refined_strategy["entry_conditions"] = [
-            "Refined Condition 1",
-            "Refined Condition 2",
-            "New Condition 3"
-        ]
-        
-        refined_strategy["exit_conditions"] = [
-            "Refined Condition 1",
-            "Refined Condition 2"
-        ]
-        
-        refined_strategy["risk_management"] = {
-            "stop_loss": "1.5 ATR",  # Tightened from 2 ATR
-            "take_profit": "3.5 ATR",  # Increased from 3 ATR
-            "max_drawdown": "4%"  # Reduced from 5%
-        }
-        
-        refined_strategy["refinement_reasoning"] = cot_result.get("reasoning_steps", [])
-        refined_strategy["refinement_conclusion"] = cot_result.get("conclusion", "")
-        refined_strategy["refinement_timestamp"] = datetime.datetime.now().isoformat()
-        
-        return refined_strategy
-
-class SignalAnalyzer:
-    """
-    Analyzes market data to generate entry/exit signals with explanations.
-    
-    This class provides methods for processing incoming market data to identify
-    trading opportunities and generate entry/exit signals with detailed
-    chain-of-thought explanations.
-    """
-    
-    def __init__(self, gemma_core: Optional['GemmaCore'] = None):
-        """
-        Initialize the SignalAnalyzer.
-        
-        Parameters:
-        -----------
-        gemma_core : GemmaCore, optional
-            Instance of GemmaCore for accessing Gemma 3 capabilities.
-            If None, uses the default instance.
-        """
-        self.logger = logging.getLogger("GemmaTrading.SignalAnalyzer")
-        self.gemma_core = gemma_core
-        
-        self.logger.info("Initialized SignalAnalyzer")
-    
-    def analyze_signal(self, ticker: str, current_price: float,
-                      recent_price_action: pd.DataFrame,
-                      technical_indicators: Dict[str, Any],
-                      market_conditions: Dict[str, Any],
-                      news_sentiment: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """
-        Analyze current market conditions to determine if there is a trading signal.
-        
-        Parameters:
-        -----------
-        ticker : str
-            Ticker symbol for the asset.
-        current_price : float
-            Current price of the asset.
-        recent_price_action : pd.DataFrame
-            Recent price and volume data.
-        technical_indicators : Dict[str, Any]
-            Technical indicators for the asset.
-        market_conditions : Dict[str, Any]
-            Current market conditions.
-        news_sentiment : Dict[str, Any], optional
-            News sentiment for the asset.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            The signal analysis result.
-        """
-        if self.gemma_core is None:
-            self.logger.error("GemmaCore instance not provided")
-            return {"error": "GemmaCore instance not provided"}
-        
-        self.logger.info(f"Analyzing signal for {ticker}")
-        
-        # Prepare data for Gemma 3
-        # In a real implementation, this would prepare the data in a format suitable for Gemma 3
-        
-        # Generate prompt for signal analysis
-        prompt = self.gemma_core.prompt_engine.generate_prompt(
-            "trade_signal",
-            ticker=ticker,
-            current_price=current_price,
-            recent_price_action=str(recent_price_action.tail(10)),  # Simplified for this implementation
-            technical_indicators=str(technical_indicators),
-            market_conditions=str(market_conditions),
-            news_sentiment=str(news_sentiment) if news_sentiment else "No news sentiment data available"
-        )
-        
-        # Get the appropriate model for signal analysis
-        model = self.gemma_core.model_manager.get_model("trade_analysis")
-        
-        # Generate signal analysis using chain-of-thought reasoning
-        cot_result = self.gemma_core.cot_processor.generate_cot(model, prompt)
-        
-        # Extract signal from chain-of-thought result
-        # In a real implementation, this would parse the result to extract a structured signal
-        # For this implementation, we'll simulate the extraction process
-        
-        # Simulate signal extraction
-        signal = {
-            "ticker": ticker,
-            "timestamp": datetime.datetime.now().isoformat(),
-            "current_price": current_price,
-            "signal_type": "buy",  # Simulated result, would be extracted from cot_result
-            "signal_strength": 7,  # Simulated result, would be extracted from cot_result
-            "reasons": [
-                "Reason 1",
-                "Reason 2",
-                "Reason 3"
-            ],  # Simulated result, would be extracted from cot_result
-            "risk_assessment": {
-                "risk_level": "moderate",
-                "stop_loss": current_price * 0.95,
-                "take_profit": current_price * 1.10
-            },  # Simulated result, would be extracted from cot_result
-            "reasoning": cot_result.get("reasoning_steps", []),
-            "conclusion": cot_result.get("conclusion", "")
-        }
-        
-        return signal
-    
-    def validate_signal(self, signal: Dict[str, Any], 
-                       strategy: Dict[str, Any],
-                       risk_parameters: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Validate a trading signal against a strategy and risk parameters.
-        
-        Parameters:
-        -----------
-        signal : Dict[str, Any]
-            The signal to validate.
-        strategy : Dict[str, Any]
-            The trading strategy to validate against.
-        risk_parameters : Dict[str, Any]
-            Risk parameters to validate against.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            The validation result.
-        """
-        if self.gemma_core is None:
-            self.logger.error("GemmaCore instance not provided")
-            return {"error": "GemmaCore instance not provided"}
-        
-        ticker = signal.get("ticker", "unknown")
-        signal_type = signal.get("signal_type", "unknown")
-        
-        self.logger.info(f"Validating {signal_type} signal for {ticker}")
-        
-        # In a real implementation, this would perform actual validation
-        # For this implementation, we'll simulate the validation process
-        
-        # Simulate validation
-        is_valid = True
-        validation_reasons = ["Signal aligns with strategy entry conditions"]
-        
-        # Check if signal type matches strategy
-        if signal_type not in ["buy", "sell"]:
-            is_valid = False
-            validation_reasons = ["Signal type does not match strategy"]
-        
-        # Check if signal strength is sufficient
-        if signal.get("signal_strength", 0) < 5:
-            is_valid = False
-            validation_reasons = ["Signal strength is insufficient"]
-        
-        # Check if risk is acceptable
-        risk_level = signal.get("risk_assessment", {}).get("risk_level", "unknown")
-        if risk_level == "high" and risk_parameters.get("max_risk_level", "moderate") != "high":
-            is_valid = False
-            validation_reasons = ["Risk level exceeds maximum allowed"]
-        
-        validation_result = {
-            "ticker": ticker,
-            "signal_type": signal_type,
-            "is_valid": is_valid,
-            "validation_reasons": validation_reasons,
-            "timestamp": datetime.datetime.now().isoformat()
-        }
-        
-        return validation_result
-
-class TradeAnalyzer:
-    """
-    Analyzes executed trades to identify improvements.
-    
-    This class provides methods for analyzing executed trades by reviewing the
-    decision-making process to identify errors or areas for improvement.
-    """
-    
-    def __init__(self, gemma_core: Optional['GemmaCore'] = None):
-        """
-        Initialize the TradeAnalyzer.
-        
-        Parameters:
-        -----------
-        gemma_core : GemmaCore, optional
-            Instance of GemmaCore for accessing Gemma 3 capabilities.
-            If None, uses the default instance.
-        """
-        self.logger = logging.getLogger("GemmaTrading.TradeAnalyzer")
-        self.gemma_core = gemma_core
-        
-        self.logger.info("Initialized TradeAnalyzer")
-    
-    def analyze_trade(self, trade: Dict[str, Any],
-                     historical_data: pd.DataFrame,
-                     market_conditions: Dict[str, Any],
-                     news: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
-        """
-        Analyze a completed trade to identify strengths, weaknesses, and lessons.
-        
-        Parameters:
-        -----------
-        trade : Dict[str, Any]
-            Details of the completed trade.
-        historical_data : pd.DataFrame
-            Historical price and volume data during the trade.
-        market_conditions : Dict[str, Any]
-            Market conditions during the trade.
-        news : List[Dict[str, Any]], optional
-            News articles during the trade.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            The trade analysis result.
-        """
-        if self.gemma_core is None:
-            self.logger.error("GemmaCore instance not provided")
-            return {"error": "GemmaCore instance not provided"}
-        
-        ticker = trade.get("ticker", "unknown")
-        
-        self.logger.info(f"Analyzing trade for {ticker}")
-        
-        # Prepare data for Gemma 3
-        # In a real implementation, this would prepare the data in a format suitable for Gemma 3
-        
-        # Generate prompt for trade analysis
-        prompt = self.gemma_core.prompt_engine.generate_prompt(
-            "trade_analysis",
-            trade=str(trade),
-            historical_data=str(historical_data.tail(10)),  # Simplified for this implementation
-            market_conditions=str(market_conditions),
-            news=str(news) if news else "No news data available"
-        )
-        
-        # Get the appropriate model for trade analysis
-        model = self.gemma_core.model_manager.get_model("trade_analysis")
-        
-        # Generate trade analysis using chain-of-thought reasoning
-        cot_result = self.gemma_core.cot_processor.generate_cot(model, prompt)
-        
-        # Extract analysis from chain-of-thought result
-        # In a real implementation, this would parse the result to extract structured analysis
-        # For this implementation, we'll simulate the extraction process
-        
-        # Simulate analysis extraction
-        analysis = {
-            "ticker": ticker,
-            "trade_id": trade.get("id", "unknown"),
-            "performance_summary": "The trade achieved a 2.5% return over 3 days.",  # Simulated
-            "strengths": [
-                "Proper entry based on technical breakout",
-                "Good position sizing according to risk parameters"
-            ],  # Simulated
-            "weaknesses": [
-                "Exit was too early, missing additional upside",
-                "Did not account for positive news catalyst"
-            ],  # Simulated
-            "lessons_learned": [
-                "Consider news catalysts in exit decisions",
-                "Allow trades more room to run when trend is strong"
-            ],  # Simulated
-            "improvement_suggestions": [
-                "Adjust exit criteria to account for trend strength",
-                "Incorporate news sentiment in position sizing"
-            ],  # Simulated
-            "reasoning": cot_result.get("reasoning_steps", []),
-            "conclusion": cot_result.get("conclusion", ""),
-            "timestamp": datetime.datetime.now().isoformat()
-        }
-        
-        return analysis
-    
-    def create_feedback_loop(self, trade_analysis: Dict[str, Any],
-                            strategy: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Create a feedback loop to adjust risk thresholds and strategy parameters.
-        
-        Parameters:
-        -----------
-        trade_analysis : Dict[str, Any]
-            Analysis of a completed trade.
-        strategy : Dict[str, Any]
-            The trading strategy used for the trade.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            Suggested adjustments to the strategy.
-        """
-        if self.gemma_core is None:
-            self.logger.error("GemmaCore instance not provided")
-            return {"error": "GemmaCore instance not provided"}
-        
-        ticker = trade_analysis.get("ticker", "unknown")
-        
-        self.logger.info(f"Creating feedback loop for {ticker} strategy")
-        
-        # In a real implementation, this would use Gemma 3 to generate adjustments
-        # For this implementation, we'll simulate the adjustment process
-        
-        # Simulate adjustment generation
-        adjustments = {
-            "ticker": ticker,
-            "strategy_id": strategy.get("id", "unknown"),
-            "parameter_adjustments": {
-                "entry_conditions": {
-                    "add": ["New entry condition based on news sentiment"],
-                    "remove": [],
-                    "modify": []
-                },
-                "exit_conditions": {
-                    "add": [],
-                    "remove": [],
-                    "modify": ["Adjust profit target from 3 ATR to 4 ATR"]
-                },
-                "risk_management": {
-                    "stop_loss": "No change",
-                    "take_profit": "Increase from 3 ATR to 4 ATR",
-                    "max_drawdown": "No change"
-                }
-            },
-            "reasoning": [
-                "Trade analysis showed exits were too early",
-                "Strategy performance would improve with higher profit targets"
-            ],
-            "timestamp": datetime.datetime.now().isoformat()
-        }
-        
-        return adjustments
-
-class QualitativeAnalyzer:
-    """
-    Analyzes news, social media, and analyst reports.
-    
-    This class provides methods for analyzing news, social media sentiment, and
-    analyst reports to provide qualitative insights for trading decisions.
-    """
-    
-    def __init__(self, gemma_core: Optional['GemmaCore'] = None):
-        """
-        Initialize the QualitativeAnalyzer.
-        
-        Parameters:
-        -----------
-        gemma_core : GemmaCore, optional
-            Instance of GemmaCore for accessing Gemma 3 capabilities.
-            If None, uses the default instance.
-        """
-        self.logger = logging.getLogger("GemmaTrading.QualitativeAnalyzer")
-        self.gemma_core = gemma_core
-        
-        self.logger.info("Initialized QualitativeAnalyzer")
-    
-    def analyze_news(self, ticker: str, news_articles: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """
-        Analyze news articles related to a ticker or the broader market.
-        
-        Parameters:
-        -----------
-        ticker : str
-            Ticker symbol for the asset.
-        news_articles : List[Dict[str, Any]]
-            List of news articles to analyze.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            The news analysis result.
-        """
-        if self.gemma_core is None:
-            self.logger.error("GemmaCore instance not provided")
-            return {"error": "GemmaCore instance not provided"}
-        
-        self.logger.info(f"Analyzing news for {ticker}")
-        
-        # Prepare data for Gemma 3
-        # In a real implementation, this would prepare the data in a format suitable for Gemma 3
-        
-        # Generate prompt for news analysis
-        prompt = self.gemma_core.prompt_engine.generate_prompt(
-            "news_analysis",
-            ticker=ticker,
-            news_articles=str(news_articles)
-        )
-        
-        # Get the appropriate model for news analysis
-        model = self.gemma_core.model_manager.get_model("news_analysis")
-        
-        # Generate news analysis using chain-of-thought reasoning
-        cot_result = self.gemma_core.cot_processor.generate_cot(model, prompt)
-        
-        # Extract analysis from chain-of-thought result
-        # In a real implementation, this would parse the result to extract structured analysis
-        # For this implementation, we'll simulate the extraction process
-        
-        # Simulate analysis extraction
-        analysis = {
-            "ticker": ticker,
-            "summary": "Recent news indicates positive developments for the company.",  # Simulated
-            "sentiment": "bullish",  # Simulated
-            "key_events": [
-                "Quarterly earnings beat expectations",
-                "New product launch announced",
-                "Positive analyst coverage"
-            ],  # Simulated
-            "potential_impact": "The positive news is likely to drive short-term price appreciation.",  # Simulated
-            "reasoning": cot_result.get("reasoning_steps", []),
-            "conclusion": cot_result.get("conclusion", ""),
-            "timestamp": datetime.datetime.now().isoformat()
-        }
-        
-        return analysis
-    
-    def analyze_social_media(self, ticker: str, 
-                           social_media_posts: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """
-        Analyze social media posts related to a ticker or the broader market.
-        
-        Parameters:
-        -----------
-        ticker : str
-            Ticker symbol for the asset.
-        social_media_posts : List[Dict[str, Any]]
-            List of social media posts to analyze.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            The social media analysis result.
-        """
-        if self.gemma_core is None:
-            self.logger.error("GemmaCore instance not provided")
-            return {"error": "GemmaCore instance not provided"}
-        
-        self.logger.info(f"Analyzing social media for {ticker}")
-        
-        # In a real implementation, this would use Gemma 3 to analyze social media
-        # For this implementation, we'll simulate the analysis process
-        
-        # Simulate analysis
-        analysis = {
-            "ticker": ticker,
-            "sentiment": "mixed",  # Simulated
-            "sentiment_breakdown": {
-                "positive": 0.45,
-                "neutral": 0.30,
-                "negative": 0.25
-            },  # Simulated
-            "trending_topics": [
-                "Earnings expectations",
-                "Product quality",
-                "Management changes"
-            ],  # Simulated
-            "key_influencers": [
-                "Influencer 1",
-                "Influencer 2"
-            ],  # Simulated
-            "potential_impact": "The mixed sentiment suggests cautious trading approach.",  # Simulated
-            "timestamp": datetime.datetime.now().isoformat()
-        }
-        
-        return analysis
-    
-    def generate_market_narrative(self, ticker: str,
-                                 news_analysis: Dict[str, Any],
-                                 social_media_analysis: Dict[str, Any],
-                                 technical_analysis: Dict[str, Any],
-                                 recent_trades: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """
-        Generate a market narrative that explains recent trade performances and suggests new ideas.
-        
-        Parameters:
-        -----------
-        ticker : str
-            Ticker symbol for the asset.
-        news_analysis : Dict[str, Any]
-            Analysis of news articles.
-        social_media_analysis : Dict[str, Any]
-            Analysis of social media posts.
-        technical_analysis : Dict[str, Any]
-            Technical analysis of the asset.
-        recent_trades : List[Dict[str, Any]]
-            Recent trades for the asset.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            The generated market narrative.
-        """
-        if self.gemma_core is None:
-            self.logger.error("GemmaCore instance not provided")
-            return {"error": "GemmaCore instance not provided"}
-        
-        self.logger.info(f"Generating market narrative for {ticker}")
-        
-        # In a real implementation, this would use Gemma 3 to generate a narrative
-        # For this implementation, we'll simulate the narrative generation process
-        
-        # Simulate narrative generation
-        narrative = {
-            "ticker": ticker,
-            "summary": "Recent price action for TICKER has been driven by positive earnings and product announcements, despite mixed social media sentiment.",  # Simulated
-            "key_drivers": [
-                "Strong earnings report",
-                "Positive analyst coverage",
-                "New product launch"
-            ],  # Simulated
-            "trade_performance_explanation": "Recent trades have performed well due to the positive news catalysts, despite some social media concerns.",  # Simulated
-            "new_ideas": [
-                "Consider a momentum strategy based on the positive news flow",
-                "Monitor social media sentiment for early warning signs of sentiment shift"
-            ],  # Simulated
-            "timestamp": datetime.datetime.now().isoformat()
-        }
-        
-        return narrative
-
-class RiskEvaluator:
-    """
-    Evaluates risk factors combining quantitative and qualitative assessments.
-    
-    This class provides methods for evaluating risk factors by combining
-    quantitative measures with qualitative assessments from Gemma 3.
-    """
-    
-    def __init__(self, gemma_core: Optional['GemmaCore'] = None):
-        """
-        Initialize the RiskEvaluator.
-        
-        Parameters:
-        -----------
-        gemma_core : GemmaCore, optional
-            Instance of GemmaCore for accessing Gemma 3 capabilities.
-            If None, uses the default instance.
-        """
-        self.logger = logging.getLogger("GemmaTrading.RiskEvaluator")
-        self.gemma_core = gemma_core
-        
-        self.logger.info("Initialized RiskEvaluator")
-    
-    def evaluate_risk(self, position: Dict[str, Any],
-                     market_conditions: Dict[str, Any],
-                     volatility_analysis: Dict[str, Any],
-                     correlation_analysis: Dict[str, Any],
-                     news_sentiment: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """
-        Evaluate risk for a position or portfolio.
-        
-        Parameters:
-        -----------
-        position : Dict[str, Any]
-            Details of the position or portfolio.
-        market_conditions : Dict[str, Any]
-            Current market conditions.
-        volatility_analysis : Dict[str, Any]
-            Volatility analysis for the position or portfolio.
-        correlation_analysis : Dict[str, Any]
-            Correlation analysis for the position or portfolio.
-        news_sentiment : Dict[str, Any], optional
-            News sentiment for the position or portfolio.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            The risk evaluation result.
-        """
-        if self.gemma_core is None:
-            self.logger.error("GemmaCore instance not provided")
-            return {"error": "GemmaCore instance not provided"}
-        
-        ticker = position.get("ticker", "unknown")
-        
-        self.logger.info(f"Evaluating risk for {ticker}")
-        
-        # Prepare data for Gemma 3
-        # In a real implementation, this would prepare the data in a format suitable for Gemma 3
-        
-        # Generate prompt for risk assessment
-        prompt = self.gemma_core.prompt_engine.generate_prompt(
-            "risk_assessment",
-            position=str(position),
-            market_conditions=str(market_conditions),
-            volatility_analysis=str(volatility_analysis),
-            correlation_analysis=str(correlation_analysis),
-            news_sentiment=str(news_sentiment) if news_sentiment else "No news sentiment data available"
-        )
-        
-        # Get the appropriate model for risk assessment
-        model = self.gemma_core.model_manager.get_model("risk_assessment")
-        
-        # Generate risk assessment using chain-of-thought reasoning
-        cot_result = self.gemma_core.cot_processor.generate_cot(model, prompt)
-        
-        # Extract assessment from chain-of-thought result
-        # In a real implementation, this would parse the result to extract structured assessment
-        # For this implementation, we'll simulate the extraction process
-        
-        # Simulate assessment extraction
-        assessment = {
-            "ticker": ticker,
-            "risk_level": 6,  # Scale of 1-10, simulated
-            "key_risk_factors": [
-                "Elevated volatility",
-                "Negative correlation with market",
-                "Mixed news sentiment"
-            ],  # Simulated
-            "downside_scenarios": [
-                "Scenario 1: 5% downside if market conditions deteriorate",
-                "Scenario 2: 10% downside if negative news catalyst emerges"
-            ],  # Simulated
-            "hedging_recommendations": [
-                "Consider protective put options",
-                "Reduce position size by 25%"
-            ],  # Simulated
-            "position_sizing_recommendations": [
-                "Reduce position to 3% of portfolio",
-                "Implement staged entry over 3 days"
-            ],  # Simulated
-            "reasoning": cot_result.get("reasoning_steps", []),
-            "conclusion": cot_result.get("conclusion", ""),
-            "timestamp": datetime.datetime.now().isoformat()
-        }
-        
-        return assessment
-    
-    def suggest_hedging(self, risk_assessment: Dict[str, Any],
-                       portfolio: Dict[str, Any],
-                       market_conditions: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Suggest hedging or rebalancing to protect the portfolio during volatile periods.
-        
-        Parameters:
-        -----------
-        risk_assessment : Dict[str, Any]
-            Risk assessment for the portfolio.
-        portfolio : Dict[str, Any]
-            Details of the portfolio.
-        market_conditions : Dict[str, Any]
-            Current market conditions.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            The hedging suggestions.
-        """
-        if self.gemma_core is None:
-            self.logger.error("GemmaCore instance not provided")
-            return {"error": "GemmaCore instance not provided"}
-        
-        self.logger.info("Suggesting hedging strategies")
-        
-        # In a real implementation, this would use Gemma 3 to generate suggestions
-        # For this implementation, we'll simulate the suggestion process
-        
-        # Simulate suggestion generation
-        suggestions = {
-            "overall_recommendation": "Implement partial hedging due to elevated market volatility.",  # Simulated
-            "hedging_strategies": [
-                {
-                    "type": "options",
-                    "description": "Purchase protective puts on key positions",
-                    "expected_cost": "1.2% of portfolio value",
-                    "expected_protection": "Limits downside to 5%"
-                },
-                {
-                    "type": "inverse_etf",
-                    "description": "Allocate 5% to inverse ETF",
-                    "expected_cost": "Opportunity cost only",
-                    "expected_protection": "Partial hedge against market decline"
-                }
-            ],  # Simulated
-            "rebalancing_recommendations": [
-                "Reduce technology exposure by 10%",
-                "Increase defensive sectors by 5%",
-                "Add 5% to cash position"
-            ],  # Simulated
-            "implementation_timeline": "Implement over 5 trading days to minimize market impact",  # Simulated
-            "timestamp": datetime.datetime.now().isoformat()
-        }
-        
-        return suggestions
-
-class TraderAssistant:
-    """
-    Provides Q&A interface for traders.
-    
-    This class provides methods for enabling a Q&A feature where traders can
-    ask for explanations on trade decisions, and Gemma 3 provides detailed
-    reasoning and context.
-    """
-    
-    def __init__(self, gemma_core: Optional['GemmaCore'] = None):
-        """
-        Initialize the TraderAssistant.
-        
-        Parameters:
-        -----------
-        gemma_core : GemmaCore, optional
-            Instance of GemmaCore for accessing Gemma 3 capabilities.
-            If None, uses the default instance.
-        """
-        self.logger = logging.getLogger("GemmaTrading.TraderAssistant")
-        self.gemma_core = gemma_core
-        
-        self.logger.info("Initialized TraderAssistant")
-    
-    def answer_question(self, question: str, context: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Answer a question from a trader.
-        
-        Parameters:
-        -----------
-        question : str
-            The question from the trader.
-        context : Dict[str, Any]
-            Context information to help answer the question.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            The answer to the question.
-        """
-        if self.gemma_core is None:
-            self.logger.error("GemmaCore instance not provided")
-            return {"error": "GemmaCore instance not provided"}
-        
-        self.logger.info(f"Answering question: {question}")
-        
-        # Prepare data for Gemma 3
-        # In a real implementation, this would prepare the data in a format suitable for Gemma 3
-        
-        # Generate prompt for trader assistance
-        prompt = self.gemma_core.prompt_engine.generate_prompt(
-            "trader_assistance",
-            question=question,
-            context=str(context)
-        )
-        
-        # Get the appropriate model for trader assistance
-        model = self.gemma_core.model_manager.get_model("default")
-        
-        # Generate answer using chain-of-thought reasoning
-        cot_result = self.gemma_core.cot_processor.generate_cot(model, prompt)
-        
-        # Extract answer from chain-of-thought result
-        # In a real implementation, this would parse the result to extract a structured answer
-        # For this implementation, we'll simulate the extraction process
-        
-        # Simulate answer extraction
-        answer = {
-            "question": question,
-            "answer": "This is a simulated answer to the question.",  # Simulated
-            "additional_context": [
-                "Additional context point 1",
-                "Additional context point 2"
-            ],  # Simulated
-            "related_considerations": [
-                "Related consideration 1",
-                "Related consideration 2"
-            ],  # Simulated
-            "reasoning": cot_result.get("reasoning_steps", []),
-            "conclusion": cot_result.get("conclusion", ""),
-            "timestamp": datetime.datetime.now().isoformat()
-        }
-        
-        return answer
-    
-    def provide_audit_trail(self, trade_id: str) -> Dict[str, Any]:
-        """
-        Provide a transparent audit trail for a trading decision.
-        
-        Parameters:
-        -----------
-        trade_id : str
-            Identifier for the trade.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            The audit trail for the trade.
-        """
-        if self.gemma_core is None:
-            self.logger.error("GemmaCore instance not provided")
-            return {"error": "GemmaCore instance not provided"}
-        
-        self.logger.info(f"Providing audit trail for trade {trade_id}")
-        
-        # In a real implementation, this would retrieve the actual audit trail
-        # For this implementation, we'll simulate the audit trail
-        
-        # Simulate audit trail
-        audit_trail = {
-            "trade_id": trade_id,
-            "decision_process": [
-                {
-                    "step": "Signal Generation",
-                    "timestamp": "2023-01-01T10:00:00Z",
-                    "description": "Technical breakout detected",
-                    "reasoning": [
-                        "Price broke above 50-day moving average",
-                        "Volume increased by 50% above average",
-                        "RSI crossed above 70"
-                    ]
-                },
-                {
-                    "step": "Risk Assessment",
-                    "timestamp": "2023-01-01T10:05:00Z",
-                    "description": "Risk assessed as moderate",
-                    "reasoning": [
-                        "Volatility within normal range",
-                        "Correlation with market is low",
-                        "News sentiment is neutral"
-                    ]
-                },
-                {
-                    "step": "Position Sizing",
-                    "timestamp": "2023-01-01T10:10:00Z",
-                    "description": "Position sized at 2% of portfolio",
-                    "reasoning": [
-                        "Based on moderate risk assessment",
-                        "Stop loss set at 5% below entry",
-                        "Expected reward-to-risk ratio of 3:1"
-                    ]
-                },
-                {
-                    "step": "Execution",
-                    "timestamp": "2023-01-01T10:15:00Z",
-                    "description": "Order executed at market",
-                    "reasoning": [
-                        "Immediate execution required due to momentum",
-                        "Liquidity sufficient for market order",
-                        "Slippage expected to be minimal"
-                    ]
-                }
-            ],
-            "chain_of_thought_logs": [
-                "Log entry 1",
-                "Log entry 2",
-                "Log entry 3"
-            ],
-            "timestamp": datetime.datetime.now().isoformat()
-        }
-        
-        return audit_trail
-
-class BacktestReviewer:
-    """
-    Reviews backtest results and provides insights.
-    
-    This class provides methods for running backtests and having Gemma 3 review
-    the outcomes, offering detailed insights on why certain strategies performed
-    well or poorly.
-    """
-    
-    def __init__(self, gemma_core: Optional['GemmaCore'] = None):
-        """
-        Initialize the BacktestReviewer.
-        
-        Parameters:
-        -----------
-        gemma_core : GemmaCore, optional
-            Instance of GemmaCore for accessing Gemma 3 capabilities.
-            If None, uses the default instance.
-        """
-        self.logger = logging.getLogger("GemmaTrading.BacktestReviewer")
-        self.gemma_core = gemma_core
-        
-        self.logger.info("Initialized BacktestReviewer")
-    
-    def review_backtest(self, strategy: Dict[str, Any],
-                       backtest_results: Dict[str, Any],
-                       performance_metrics: Dict[str, Any],
-                       trade_log: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """
-        Review backtest results and provide insights.
-        
-        Parameters:
-        -----------
-        strategy : Dict[str, Any]
-            Details of the strategy being backtested.
-        backtest_results : Dict[str, Any]
-            Results of the backtest.
-        performance_metrics : Dict[str, Any]
-            Performance metrics for the backtest.
-        trade_log : List[Dict[str, Any]]
-            Log of trades executed during the backtest.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            The backtest review.
-        """
-        if self.gemma_core is None:
-            self.logger.error("GemmaCore instance not provided")
-            return {"error": "GemmaCore instance not provided"}
-        
-        strategy_type = strategy.get("strategy_type", "unknown")
-        
-        self.logger.info(f"Reviewing backtest for {strategy_type} strategy")
-        
-        # Prepare data for Gemma 3
-        # In a real implementation, this would prepare the data in a format suitable for Gemma 3
-        
-        # Generate prompt for backtest review
-        prompt = self.gemma_core.prompt_engine.generate_prompt(
-            "backtest_review",
-            strategy=str(strategy),
-            backtest_results=str(backtest_results),
-            performance_metrics=str(performance_metrics),
-            trade_log=str(trade_log)
-        )
-        
-        # Get the appropriate model for backtest review
-        model = self.gemma_core.model_manager.get_model("default")
-        
-        # Generate review using chain-of-thought reasoning
-        cot_result = self.gemma_core.cot_processor.generate_cot(model, prompt)
-        
-        # Extract review from chain-of-thought result
-        # In a real implementation, this would parse the result to extract a structured review
-        # For this implementation, we'll simulate the extraction process
-        
-        # Simulate review extraction
-        review = {
-            "strategy_type": strategy_type,
-            "performance_summary": "The strategy achieved a 15% annual return with a Sharpe ratio of 1.2.",  # Simulated
-            "strengths": [
-                "Strong performance in trending markets",
-                "Good risk management with consistent position sizing",
-                "Effective use of stop losses"
-            ],  # Simulated
-            "weaknesses": [
-                "Poor performance in choppy markets",
-                "High drawdown during market corrections",
-                "Excessive trading frequency leading to high costs"
-            ],  # Simulated
-            "favorable_conditions": [
-                "Strong market trends",
-                "Low volatility environments",
-                "Positive news sentiment"
-            ],  # Simulated
-            "unfavorable_conditions": [
-                "Choppy, range-bound markets",
-                "High volatility environments",
-                "Negative news catalysts"
-            ],  # Simulated
-            "improvement_recommendations": [
-                "Add filter to reduce trading in choppy markets",
-                "Implement dynamic position sizing based on volatility",
-                "Incorporate news sentiment in entry decisions"
-            ],  # Simulated
-            "reasoning": cot_result.get("reasoning_steps", []),
-            "conclusion": cot_result.get("conclusion", ""),
-            "timestamp": datetime.datetime.now().isoformat()
-        }
-        
-        return review
-    
-    def optimize_strategy(self, strategy: Dict[str, Any],
-                         backtest_review: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Optimize a strategy based on backtest review.
-        
-        Parameters:
-        -----------
-        strategy : Dict[str, Any]
-            Details of the strategy to optimize.
-        backtest_review : Dict[str, Any]
-            Review of the strategy's backtest performance.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            The optimized strategy.
-        """
-        if self.gemma_core is None:
-            self.logger.error("GemmaCore instance not provided")
-            return {"error": "GemmaCore instance not provided"}
-        
-        strategy_type = strategy.get("strategy_type", "unknown")
-        
-        self.logger.info(f"Optimizing {strategy_type} strategy based on backtest review")
-        
-        # In a real implementation, this would use Gemma 3 to generate optimizations
-        # For this implementation, we'll simulate the optimization process
-        
-        # Simulate optimization
-        optimized_strategy = strategy.copy()
-        
-        # Apply simulated optimizations based on backtest review
-        optimized_strategy["entry_conditions"] = [
-            "Original condition 1",
-            "Original condition 2",
-            "New condition: Market must be trending (ADX > 25)"  # Added based on review
-        ]
-        
-        optimized_strategy["exit_conditions"] = [
-            "Original condition 1",
-            "Modified condition: Take profit at 3.5 ATR (increased from 3 ATR)",  # Modified based on review
-            "New condition: Exit if market becomes choppy (ADX < 20)"  # Added based on review
-        ]
-        
-        optimized_strategy["position_sizing"] = "Dynamic sizing based on volatility (0.5-2% risk per trade)"  # Modified based on review
-        
-        optimized_strategy["optimization_notes"] = {
-            "changes": [
-                "Added trend filter to entry conditions",
-                "Increased take profit target",
-                "Added exit condition for choppy markets",
-                "Implemented dynamic position sizing"
-            ],
-            "expected_improvements": [
-                "Reduced trading in unfavorable conditions",
-                "Improved profit capture in trending markets",
-                "Lower drawdown during market corrections",
-                "Better risk-adjusted returns"
-            ],
-            "timestamp": datetime.datetime.now().isoformat()
-        }
-        
-        return optimized_strategy
-
-class DecisionEngine:
-    """
-    Central engine for generating trade decisions.
-    
-    This class provides methods for ingesting real-time market data and internal
-    metrics to autonomously generate trade signals with transparent explanations.
-    """
-    
-    def __init__(self, gemma_core: Optional['GemmaCore'] = None):
-        """
-        Initialize the DecisionEngine.
-        
-        Parameters:
-        -----------
-        gemma_core : GemmaCore, optional
-            Instance of GemmaCore for accessing Gemma 3 capabilities.
-            If None, uses the default instance.
-        """
-        self.logger = logging.getLogger("GemmaTrading.DecisionEngine")
-        self.gemma_core = gemma_core
-        
-        self.logger.info("Initialized DecisionEngine")
-    
-    def generate_decision(self, ticker: str,
-                         market_data: Dict[str, Any],
-                         technical_indicators: Dict[str, Any],
-                         news_sentiment: Dict[str, Any],
-                         portfolio_context: Dict[str, Any],
-                         risk_parameters: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Generate a trade decision based on all available data.
-        
-        Parameters:
-        -----------
-        ticker : str
-            Ticker symbol for the asset.
-        market_data : Dict[str, Any]
-            Current market data for the asset.
-        technical_indicators : Dict[str, Any]
-            Technical indicators for the asset.
-        news_sentiment : Dict[str, Any]
-            News sentiment for the asset.
-        portfolio_context : Dict[str, Any]
-            Current portfolio context.
-        risk_parameters : Dict[str, Any]
-            Risk parameters for the decision.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            The generated trade decision.
-        """
-        if self.gemma_core is None:
-            self.logger.error("GemmaCore instance not provided")
-            return {"error": "GemmaCore instance not provided"}
-        
-        self.logger.info(f"Generating trade decision for {ticker}")
-        
-        # In a real implementation, this would use all components of the Gemma 3 integration
-        # For this implementation, we'll simulate the decision process
-        
-        # 1. Analyze technical indicators
-        # 2. Analyze news sentiment
-        # 3. Evaluate risk
-        # 4. Generate signal
-        # 5. Validate signal against portfolio context and risk parameters
-        # 6. Make final decision
-        
-        # Simulate decision generation
-        decision = {
-            "ticker": ticker,
-            "timestamp": datetime.datetime.now().isoformat(),
-            "action": "buy",  # Simulated
-            "confidence": 0.85,  # Simulated
-            "quantity": 100,  # Simulated
-            "price_target": {
-                "entry": market_data.get("current_price", 0),
-                "stop_loss": market_data.get("current_price", 0) * 0.95,
-                "take_profit": market_data.get("current_price", 0) * 1.10
-            },
-            "reasoning": [
-                "Technical indicators show strong bullish momentum",
-                "News sentiment is positive",
-                "Risk assessment indicates acceptable risk level",
-                "Portfolio has sufficient capacity for this position"
-            ],
-            "technical_analysis": {
-                "trend": "bullish",
-                "momentum": "strong",
-                "volatility": "moderate",
-                "key_indicators": {
-                    "rsi": 65,
-                    "macd": "bullish crossover",
-                    "bollinger": "price above upper band"
-                }
-            },
-            "news_analysis": {
-                "sentiment": "positive",
-                "key_events": ["Positive earnings report", "New product launch"]
-            },
-            "risk_assessment": {
-                "risk_level": "moderate",
-                "portfolio_impact": "2% increase in overall risk",
-                "correlation_impact": "Slight increase in technology exposure"
-            },
-            "chain_of_thought": [
-                "Step 1: Analyzed technical indicators showing bullish momentum",
-                "Step 2: Evaluated news sentiment showing positive bias",
-                "Step 3: Assessed risk level as moderate and acceptable",
-                "Step 4: Checked portfolio context for capacity and diversification",
-                "Step 5: Generated buy signal with high confidence",
-                "Step 6: Determined position size based on risk parameters",
-                "Step 7: Set price targets based on technical levels and volatility"
-            ]
-        }
-        
-        return decision
-    
-    def execute_decision(self, decision: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Execute a trade decision.
-        
-        Parameters:
-        -----------
-        decision : Dict[str, Any]
-            The trade decision to execute.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            The execution result.
-        """
-        ticker = decision.get("ticker", "unknown")
-        action = decision.get("action", "unknown")
-        
-        self.logger.info(f"Executing {action} decision for {ticker}")
-        
-        # In a real implementation, this would execute the actual trade
-        # For this implementation, we'll simulate the execution process
-        
-        # Simulate execution
-        execution_result = {
-            "ticker": ticker,
-            "action": action,
-            "status": "executed",  # Simulated
-            "execution_price": decision.get("price_target", {}).get("entry", 0),
-            "quantity": decision.get("quantity", 0),
-            "timestamp": datetime.datetime.now().isoformat(),
-            "execution_details": {
-                "order_type": "market",
-                "execution_time": "100ms",
-                "slippage": "0.1%"
-            }
-        }
-        
-        return execution_result
 
 class GemmaCore:
     """
     Central interface for all Gemma 3 interactions.
     
-    This class provides a unified interface for accessing all Gemma 3 capabilities,
-    including model management, prompt generation, chain-of-thought reasoning,
-    feedback loops, and data integration.
+    This class provides a unified interface for accessing Gemma 3's capabilities,
+    managing the underlying model, and coordinating interactions between different
+    components of the trading system.
     """
     
-    def __init__(self, model_path: Optional[str] = None,
-                templates_path: Optional[str] = None,
-                feedback_db_path: Optional[str] = None):
+    def __init__(self, model_path: Optional[str] = None, templates_path: Optional[str] = None):
         """
         Initialize the GemmaCore.
         
         Parameters:
         -----------
         model_path : str, optional
-            Path to the Gemma 3 model files. If None, uses default path.
+            Path to the Gemma 3 model files. If not provided, uses default path.
         templates_path : str, optional
-            Path to the prompt templates directory. If None, uses default path.
-        feedback_db_path : str, optional
-            Path to the feedback database. If None, uses default path.
+            Path to prompt templates. If not provided, uses default templates.
         """
         self.logger = logging.getLogger("GemmaTrading.GemmaCore")
         
@@ -2263,163 +1191,652 @@ class GemmaCore:
         self.model_manager = ModelManager(model_path)
         self.prompt_engine = PromptEngine(templates_path)
         self.cot_processor = ChainOfThoughtProcessor()
-        self.feedback_loop = FeedbackLoop(feedback_db_path)
+        self.feedback_loop = FeedbackLoop()
         self.data_integration = DataIntegration()
         
-        # Initialize modules
-        self.strategy_generator = StrategyGenerator(self)
-        self.signal_analyzer = SignalAnalyzer(self)
-        self.trade_analyzer = TradeAnalyzer(self)
-        self.qualitative_analyzer = QualitativeAnalyzer(self)
-        self.risk_evaluator = RiskEvaluator(self)
-        self.trader_assistant = TraderAssistant(self)
-        self.backtest_reviewer = BacktestReviewer(self)
-        self.decision_engine = DecisionEngine(self)
+        # Load default model
+        self.default_model = self.model_manager.load_model()
         
-        self.logger.info("Initialized GemmaCore with all components")
+        self.logger.info("Initialized GemmaCore")
     
-    def generate_strategy(self, ticker: str, strategy_type: str, **kwargs) -> Dict[str, Any]:
+    def generate_response(self, prompt: str, model_type: str = "default", use_cot: bool = True) -> str:
         """
-        Generate a trading strategy.
+        Generate a response from Gemma 3.
         
         Parameters:
         -----------
+        prompt : str
+            Prompt to send to Gemma 3.
+        model_type : str
+            Type of model to use. Options: "default", "finance", "math", "nlp".
+        use_cot : bool
+            Whether to use chain-of-thought reasoning.
+            
+        Returns:
+        --------
+        str
+            Generated response.
+        """
+        self.logger.info(f"Generating response with model type: {model_type}")
+        
+        # Enhance prompt for chain-of-thought reasoning if requested
+        if use_cot:
+            prompt = self.cot_processor.enhance_prompt_for_cot(prompt)
+        
+        # Load appropriate model
+        model = self.model_manager.load_model(model_type)
+        
+        # In a real implementation, this would call the actual Gemma 3 model
+        # For now, we'll generate a mock response
+        response = self._generate_mock_response(prompt, model_type)
+        
+        return response
+    
+    def analyze_market_data(self, ticker: str, data: pd.DataFrame, indicators: Dict[str, pd.Series] = None) -> Dict[str, Any]:
+        """
+        Analyze market data using Gemma 3.
+        
+        Parameters:
+        -----------
+        ticker : str
+            Ticker symbol for the asset.
+        data : pd.DataFrame
+            Market data DataFrame.
+        indicators : Dict[str, pd.Series], optional
+            Dictionary of technical indicators.
+            
+        Returns:
+        --------
+        Dict[str, Any]
+            Analysis results.
+        """
+        self.logger.info(f"Analyzing market data for {ticker}")
+        
+        # Prepare data for analysis
+        market_data_str = self.data_integration.prepare_market_data(data)
+        
+        if indicators:
+            indicators_str = self.data_integration.prepare_technical_indicators(data, indicators)
+            data_str = market_data_str + "\n\n" + indicators_str
+        else:
+            data_str = market_data_str
+        
+        # Generate prompt for market analysis
+        prompt = self.prompt_engine.generate_prompt(
+            "technical_analysis",
+            ticker=ticker,
+            indicators="various technical indicators" if indicators else "price data only",
+            data=data_str
+        )
+        
+        # Get analysis from Gemma 3
+        response = self.generate_response(prompt, model_type="finance")
+        
+        # Extract reasoning chain
+        reasoning_chain = self.cot_processor.extract_reasoning_chain(response)
+        
+        # Parse the response to extract structured information
+        analysis = self._parse_market_analysis(response, ticker)
+        
+        # Add reasoning chain to analysis
+        analysis["reasoning"] = reasoning_chain
+        
+        return analysis
+    
+    def generate_trading_strategy(self, ticker: str, data: pd.DataFrame, strategy_type: str) -> Dict[str, Any]:
+        """
+        Generate a trading strategy using Gemma 3.
+        
+        Parameters:
+        -----------
+        ticker : str
+            Ticker symbol for the asset.
+        data : pd.DataFrame
+            Market data DataFrame.
+        strategy_type : str
+            Type of strategy to generate (e.g., "swing", "day", "position").
+            
+        Returns:
+        --------
+        Dict[str, Any]
+            Generated strategy.
+        """
+        self.logger.info(f"Generating {strategy_type} trading strategy for {ticker}")
+        
+        # Prepare data for strategy generation
+        data_str = self.data_integration.prepare_market_data(data)
+        
+        # Generate prompt for strategy generation
+        prompt = self.prompt_engine.generate_prompt(
+            "strategy_generation",
+            ticker=ticker,
+            conditions=f"Market data for {ticker} with strategy type: {strategy_type}\n\n{data_str}"
+        )
+        
+        # Get strategy from Gemma 3
+        response = self.generate_response(prompt, model_type="finance")
+        
+        # Extract reasoning chain
+        reasoning_chain = self.cot_processor.extract_reasoning_chain(response)
+        
+        # Parse the response to extract structured information
+        strategy = self._parse_strategy(response, ticker, strategy_type)
+        
+        # Add reasoning chain to strategy
+        strategy["reasoning"] = reasoning_chain
+        
+        return strategy
+    
+    def analyze_news_sentiment(self, ticker: str, news_items: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Analyze news sentiment using Gemma 3.
+        
+        Parameters:
+        -----------
+        ticker : str
+            Ticker symbol for the asset.
+        news_items : List[Dict[str, Any]]
+            List of news items to analyze.
+            
+        Returns:
+        --------
+        Dict[str, Any]
+            Sentiment analysis results.
+        """
+        self.logger.info(f"Analyzing news sentiment for {ticker}")
+        
+        # Prepare news data for analysis
+        news_str = self.data_integration.prepare_news_data(news_items)
+        
+        # Generate prompt for news analysis
+        prompt = self.prompt_engine.generate_prompt(
+            "news_analysis",
+            ticker=ticker,
+            articles=news_str
+        )
+        
+        # Get analysis from Gemma 3
+        response = self.generate_response(prompt, model_type="nlp")
+        
+        # Extract reasoning chain
+        reasoning_chain = self.cot_processor.extract_reasoning_chain(response)
+        
+        # Parse the response to extract structured information
+        sentiment = self._parse_sentiment_analysis(response, ticker)
+        
+        # Add reasoning chain to sentiment
+        sentiment["reasoning"] = reasoning_chain
+        
+        return sentiment
+    
+    def explain_trading_decision(self, ticker: str, decision: str, data: Dict[str, Any]) -> str:
+        """
+        Generate an explanation for a trading decision using Gemma 3.
+        
+        Parameters:
+        -----------
+        ticker : str
+            Ticker symbol for the asset.
+        decision : str
+            Trading decision to explain (e.g., "BUY", "SELL", "HOLD").
+        data : Dict[str, Any]
+            Data used to make the decision.
+            
+        Returns:
+        --------
+        str
+            Explanation of the trading decision.
+        """
+        self.logger.info(f"Explaining {decision} decision for {ticker}")
+        
+        # Prepare data for explanation
+        data_str = json.dumps(data, indent=2)
+        
+        # Generate prompt for decision explanation
+        prompt = self.prompt_engine.generate_prompt(
+            "trading_decision",
+            ticker=ticker,
+            analysis=f"Decision: {decision}\n\nData: {data_str}",
+            position="None"  # Assuming no current position
+        )
+        
+        # Get explanation from Gemma 3
+        response = self.generate_response(prompt, model_type="finance")
+        
+        # Extract reasoning chain
+        reasoning_chain = self.cot_processor.extract_reasoning_chain(response)
+        
+        # Format reasoning chain
+        explanation = self.cot_processor.format_reasoning_chain(reasoning_chain, format_type="markdown")
+        
+        return explanation
+    
+    def _generate_mock_response(self, prompt: str, model_type: str) -> str:
+        """
+        Generate a mock response for development/testing.
+        
+        Parameters:
+        -----------
+        prompt : str
+            Prompt sent to the model.
+        model_type : str
+            Type of model used.
+            
+        Returns:
+        --------
+        str
+            Mock response.
+        """
+        # Extract key information from the prompt
+        ticker_match = re.search(r'for\s+([A-Z]+)', prompt)
+        ticker = ticker_match.group(1) if ticker_match else "UNKNOWN"
+        
+        # Generate different responses based on prompt content
+        if "technical_analysis" in prompt or "market_analysis" in prompt:
+            return self._generate_mock_technical_analysis(ticker)
+        elif "strategy_generation" in prompt:
+            return self._generate_mock_strategy(ticker)
+        elif "news_analysis" in prompt:
+            return self._generate_mock_news_analysis(ticker)
+        elif "trading_decision" in prompt:
+            return self._generate_mock_trading_decision(ticker)
+        else:
+            return self._generate_generic_mock_response(ticker)
+    
+    def _generate_mock_technical_analysis(self, ticker: str) -> str:
+        """Generate a mock technical analysis response."""
+        return f"""
+Reasoning:
+1. Examining the recent price action for {ticker}, I notice a clear downtrend over the past 20 trading days.
+2. The 20-day SMA is below the 50-day SMA, confirming the bearish trend.
+3. The RSI is currently at 35, indicating weak momentum but not yet oversold.
+4. The MACD is below the signal line, confirming bearish momentum.
+5. Volume has been increasing on down days and decreasing on up days, suggesting selling pressure.
+6. Support levels can be identified at $191.39 and $187.22.
+7. Resistance levels are at $202.45 and $208.91.
+
+Conclusion: Based on technical analysis, {ticker} is in a bearish trend with weak momentum and increasing selling pressure. The price is likely to test support at $191.39 in the near term. A break below this level could lead to further downside to $187.22. Traders should be cautious and consider bearish strategies.
+
+Technical Analysis Results:
+{{
+  "ticker": "{ticker}",
+  "trend": "bearish",
+  "momentum": "weak",
+  "support_levels": [191.39, 187.22],
+  "resistance_levels": [202.45, 208.91],
+  "rsi": 35,
+  "macd": "bearish",
+  "volume_trend": "increasing on down days",
+  "recommendation": "SELL"
+}}
+"""
+    
+    def _generate_mock_strategy(self, ticker: str) -> str:
+        """Generate a mock trading strategy response."""
+        return f"""
+Reasoning:
+1. Given the bearish trend identified in {ticker}, a swing trading strategy should focus on short positions.
+2. The optimal entry point would be after a bounce to resistance around $202.45.
+3. A stop loss should be placed above the recent swing high at approximately $208.91.
+4. The first target for profit taking would be at the support level of $191.39.
+5. The second target would be at the lower support of $187.22.
+6. Position sizing should be conservative due to the current market volatility.
+7. The strategy should include a trailing stop to lock in profits if the downtrend accelerates.
+
+Conclusion: A bearish swing trading strategy for {ticker} with entry after a bounce to resistance, stop loss above recent swing high, and targets at identified support levels.
+
+Trading Strategy:
+{{
+  "name": "Bearish Swing Strategy for {ticker}",
+  "ticker": "{ticker}",
+  "type": "swing",
+  "direction": "short",
+  "entry": {{
+    "condition": "Price bounces to resistance level",
+    "price": 202.45
+  }},
+  "stop_loss": {{
+    "condition": "Above recent swing high",
+    "price": 208.91,
+    "percentage": 3.19
+  }},
+  "take_profit": [
+    {{
+      "condition": "First support level",
+      "price": 191.39,
+      "percentage": 5.46
+    }},
+    {{
+      "condition": "Second support level",
+      "price": 187.22,
+      "percentage": 7.52
+    }}
+  ],
+  "position_sizing": {{
+    "type": "percentage",
+    "value": 5
+  }},
+  "risk_reward_ratio": 1.71,
+  "timeframe": "daily",
+  "indicators": [
+    "20-day SMA",
+    "50-day SMA",
+    "RSI",
+    "MACD"
+  ],
+  "parameters": {{
+    "rsi_threshold": 60,
+    "macd_signal": "bearish crossover"
+  }}
+}}
+"""
+    
+    def _generate_mock_news_analysis(self, ticker: str) -> str:
+        """Generate a mock news sentiment analysis response."""
+        return f"""
+Reasoning:
+1. Analyzing the recent news articles for {ticker}, I notice several negative headlines related to product delays.
+2. There are also concerns about increasing competition in the company's main market segments.
+3. One positive article discusses a new product announcement, but the market reaction was muted.
+4. The language used in most articles has a negative tone, with words like "struggles," "challenges," and "pressure."
+5. The timing of the negative news coincides with the technical weakness observed in the price chart.
+6. Analyst comments quoted in the articles are predominantly cautious or negative.
+7. The volume of negative news has increased over the past week compared to the previous period.
+
+Conclusion: The news sentiment for {ticker} is predominantly negative, with concerns about product delays and increasing competition. This aligns with the technical weakness observed in the price action.
+
+News Sentiment Analysis:
+{{
+  "ticker": "{ticker}",
+  "sentiment": "negative",
+  "confidence": 0.78,
+  "key_topics": [
+    "Product delays",
+    "Increasing competition",
+    "New product announcement",
+    "Market pressure"
+  ],
+  "sentiment_breakdown": {{
+    "positive": 0.15,
+    "neutral": 0.25,
+    "negative": 0.60
+  }},
+  "key_events": [
+    "Announced delay in flagship product release",
+    "Competitor launched similar product at lower price point",
+    "Announced new product line with limited market impact"
+  ],
+  "potential_impact": "The negative news sentiment is likely to continue putting downward pressure on the stock price in the near term."
+}}
+"""
+    
+    def _generate_mock_trading_decision(self, ticker: str) -> str:
+        """Generate a mock trading decision explanation response."""
+        return f"""
+Reasoning:
+1. The technical analysis shows {ticker} is in a clear bearish trend with the 20-day SMA below the 50-day SMA.
+2. The RSI at 35 indicates weak momentum, but not yet oversold conditions.
+3. The MACD is below the signal line, confirming bearish momentum.
+4. News sentiment is predominantly negative, with concerns about product delays and competition.
+5. Support levels are identified at $191.39 and $187.22, providing potential targets for a short position.
+6. The risk-reward ratio for a short position entered at current levels is favorable at 1.71.
+7. Market conditions overall are showing increased volatility, suggesting caution with position sizing.
+
+Conclusion: The decision to SELL {ticker} is supported by both technical analysis showing a bearish trend and negative news sentiment. The strategy includes a clear stop loss and profit targets with a favorable risk-reward ratio.
+
+Trading Decision Explanation:
+{{
+  "decision": "SELL",
+  "ticker": "{ticker}",
+  "confidence": 0.82,
+  "primary_factors": [
+    "Bearish technical trend",
+    "Negative news sentiment",
+    "Favorable risk-reward ratio"
+  ],
+  "risk_management": {{
+    "stop_loss": 208.91,
+    "take_profit": [191.39, 187.22],
+    "position_size": "5% of portfolio",
+    "max_risk": "1% of portfolio value"
+  }},
+  "expected_outcome": "Price is expected to decline to first support level at $191.39 within 5-10 trading days."
+}}
+"""
+    
+    def _generate_generic_mock_response(self, ticker: str) -> str:
+        """Generate a generic mock response."""
+        return f"""
+Reasoning:
+1. Analyzing the provided information for {ticker}.
+2. Considering multiple factors including price action, indicators, and market conditions.
+3. Evaluating potential scenarios and their probabilities.
+4. Weighing risk and reward for different approaches.
+5. Considering the broader market context and sector performance.
+6. Analyzing historical patterns and their relevance to current conditions.
+7. Formulating a balanced assessment based on all available information.
+
+Conclusion: Based on the analysis of available information, {ticker} shows mixed signals with slightly bearish bias in the near term.
+
+Analysis Results:
+{{
+  "ticker": "{ticker}",
+  "overall_assessment": "slightly bearish",
+  "confidence": 0.65,
+  "key_factors": [
+    "Mixed technical signals",
+    "Uncertain fundamental outlook",
+    "Broader market pressure"
+  ],
+  "recommendation": "Consider reduced exposure with defined risk parameters"
+}}
+"""
+    
+    def _parse_market_analysis(self, response: str, ticker: str) -> Dict[str, Any]:
+        """
+        Parse market analysis response to extract structured information.
+        
+        Parameters:
+        -----------
+        response : str
+            Response from Gemma 3.
+        ticker : str
+            Ticker symbol for the asset.
+            
+        Returns:
+        --------
+        Dict[str, Any]
+            Structured market analysis.
+        """
+        # Try to extract JSON from the response
+        json_match = re.search(r'\{[\s\S]*\}', response)
+        
+        if json_match:
+            try:
+                analysis = json.loads(json_match.group(0))
+                return analysis
+            except json.JSONDecodeError:
+                pass
+        
+        # Fallback to regex extraction if JSON parsing fails
+        trend_match = re.search(r'trend[\":]?\s*[\":,]?\s*[\":]?([a-zA-Z]+)[\":]?', response)
+        trend = trend_match.group(1) if trend_match else "neutral"
+        
+        momentum_match = re.search(r'momentum[\":]?\s*[\":,]?\s*[\":]?([a-zA-Z]+)[\":]?', response)
+        momentum = momentum_match.group(1) if momentum_match else "neutral"
+        
+        recommendation_match = re.search(r'recommendation[\":]?\s*[\":,]?\s*[\":]?(BUY|SELL|HOLD)[\":]?', response, re.IGNORECASE)
+        recommendation = recommendation_match.group(1).upper() if recommendation_match else "HOLD"
+        
+        # Extract support levels
+        support_levels = []
+        support_match = re.search(r'support_levels[\":]?\s*[\":,]?\s*\[([\d\., ]+)\]', response)
+        if support_match:
+            support_str = support_match.group(1)
+            support_levels = [float(level.strip()) for level in support_str.split(',') if level.strip()]
+        
+        # Extract resistance levels
+        resistance_levels = []
+        resistance_match = re.search(r'resistance_levels[\":]?\s*[\":,]?\s*\[([\d\., ]+)\]', response)
+        if resistance_match:
+            resistance_str = resistance_match.group(1)
+            resistance_levels = [float(level.strip()) for level in resistance_str.split(',') if level.strip()]
+        
+        # Construct analysis dictionary
+        analysis = {
+            "ticker": ticker,
+            "trend": trend,
+            "momentum": momentum,
+            "support_levels": support_levels,
+            "resistance_levels": resistance_levels,
+            "recommendation": recommendation,
+            "timestamp": datetime.datetime.now().isoformat()
+        }
+        
+        return analysis
+    
+    def _parse_strategy(self, response: str, ticker: str, strategy_type: str) -> Dict[str, Any]:
+        """
+        Parse strategy response to extract structured information.
+        
+        Parameters:
+        -----------
+        response : str
+            Response from Gemma 3.
         ticker : str
             Ticker symbol for the asset.
         strategy_type : str
-            Type of strategy to generate.
-        **kwargs : dict
-            Additional parameters for strategy generation.
+            Type of strategy.
             
         Returns:
         --------
         Dict[str, Any]
-            The generated strategy.
+            Structured strategy.
         """
-        return self.strategy_generator.generate_strategy(ticker, strategy_type, **kwargs)
+        # Try to extract JSON from the response
+        json_match = re.search(r'\{[\s\S]*\}', response)
+        
+        if json_match:
+            try:
+                strategy = json.loads(json_match.group(0))
+                return strategy
+            except json.JSONDecodeError:
+                pass
+        
+        # Fallback to regex extraction if JSON parsing fails
+        name_match = re.search(r'name[\":]?\s*[\":,]?\s*[\":]?([^\"]+)[\":]?', response)
+        name = name_match.group(1) if name_match else f"{strategy_type.capitalize()} Strategy for {ticker}"
+        
+        direction_match = re.search(r'direction[\":]?\s*[\":,]?\s*[\":]?([a-zA-Z]+)[\":]?', response)
+        direction = direction_match.group(1) if direction_match else "long"
+        
+        # Extract entry condition and price
+        entry_condition = "Market price"
+        entry_price = 0.0
+        
+        entry_condition_match = re.search(r'entry[\":]?\s*\{[\s\S]*?condition[\":]?\s*[\":,]?\s*[\":]?([^\"]+)[\":]?', response)
+        if entry_condition_match:
+            entry_condition = entry_condition_match.group(1)
+        
+        entry_price_match = re.search(r'entry[\":]?\s*\{[\s\S]*?price[\":]?\s*[\":,]?\s*([0-9.]+)', response)
+        if entry_price_match:
+            entry_price = float(entry_price_match.group(1))
+        
+        # Extract stop loss
+        stop_loss_price = 0.0
+        stop_loss_match = re.search(r'stop_loss[\":]?\s*\{[\s\S]*?price[\":]?\s*[\":,]?\s*([0-9.]+)', response)
+        if stop_loss_match:
+            stop_loss_price = float(stop_loss_match.group(1))
+        
+        # Extract take profit
+        take_profit_prices = []
+        take_profit_match = re.search(r'take_profit[\":]?\s*\[([\s\S]*?)\]', response)
+        if take_profit_match:
+            take_profit_str = take_profit_match.group(1)
+            price_matches = re.findall(r'price[\":]?\s*[\":,]?\s*([0-9.]+)', take_profit_str)
+            take_profit_prices = [float(price) for price in price_matches]
+        
+        # Construct strategy dictionary
+        strategy = {
+            "name": name,
+            "ticker": ticker,
+            "type": strategy_type,
+            "direction": direction,
+            "entry": {
+                "condition": entry_condition,
+                "price": entry_price
+            },
+            "stop_loss": {
+                "price": stop_loss_price
+            },
+            "take_profit": [{"price": price} for price in take_profit_prices],
+            "timestamp": datetime.datetime.now().isoformat()
+        }
+        
+        return strategy
     
-    def analyze_signal(self, ticker: str, **kwargs) -> Dict[str, Any]:
+    def _parse_sentiment_analysis(self, response: str, ticker: str) -> Dict[str, Any]:
         """
-        Analyze market data to determine if there is a trading signal.
+        Parse sentiment analysis response to extract structured information.
         
         Parameters:
         -----------
+        response : str
+            Response from Gemma 3.
         ticker : str
             Ticker symbol for the asset.
-        **kwargs : dict
-            Additional parameters for signal analysis.
             
         Returns:
         --------
         Dict[str, Any]
-            The signal analysis result.
+            Structured sentiment analysis.
         """
-        return self.signal_analyzer.analyze_signal(ticker, **kwargs)
-    
-    def analyze_trade(self, trade: Dict[str, Any], **kwargs) -> Dict[str, Any]:
-        """
-        Analyze a completed trade.
+        # Try to extract JSON from the response
+        json_match = re.search(r'\{[\s\S]*\}', response)
         
-        Parameters:
-        -----------
-        trade : Dict[str, Any]
-            Details of the completed trade.
-        **kwargs : dict
-            Additional parameters for trade analysis.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            The trade analysis result.
-        """
-        return self.trade_analyzer.analyze_trade(trade, **kwargs)
-    
-    def analyze_news(self, ticker: str, news_articles: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """
-        Analyze news articles.
+        if json_match:
+            try:
+                sentiment = json.loads(json_match.group(0))
+                return sentiment
+            except json.JSONDecodeError:
+                pass
         
-        Parameters:
-        -----------
-        ticker : str
-            Ticker symbol for the asset.
-        news_articles : List[Dict[str, Any]]
-            List of news articles to analyze.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            The news analysis result.
-        """
-        return self.qualitative_analyzer.analyze_news(ticker, news_articles)
-    
-    def evaluate_risk(self, position: Dict[str, Any], **kwargs) -> Dict[str, Any]:
-        """
-        Evaluate risk for a position or portfolio.
+        # Fallback to regex extraction if JSON parsing fails
+        sentiment_match = re.search(r'sentiment[\":]?\s*[\":,]?\s*[\":]?([a-zA-Z]+)[\":]?', response)
+        sentiment_value = sentiment_match.group(1) if sentiment_match else "neutral"
         
-        Parameters:
-        -----------
-        position : Dict[str, Any]
-            Details of the position or portfolio.
-        **kwargs : dict
-            Additional parameters for risk evaluation.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            The risk evaluation result.
-        """
-        return self.risk_evaluator.evaluate_risk(position, **kwargs)
-    
-    def answer_question(self, question: str, context: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Answer a question from a trader.
+        confidence_match = re.search(r'confidence[\":]?\s*[\":,]?\s*([0-9.]+)', response)
+        confidence = float(confidence_match.group(1)) if confidence_match else 0.5
         
-        Parameters:
-        -----------
-        question : str
-            The question from the trader.
-        context : Dict[str, Any]
-            Context information to help answer the question.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            The answer to the question.
-        """
-        return self.trader_assistant.answer_question(question, context)
-    
-    def review_backtest(self, strategy: Dict[str, Any], **kwargs) -> Dict[str, Any]:
-        """
-        Review backtest results.
+        # Extract key topics
+        key_topics = []
+        topics_match = re.search(r'key_topics[\":]?\s*[\":,]?\s*\[([\s\S]*?)\]', response)
+        if topics_match:
+            topics_str = topics_match.group(1)
+            topic_matches = re.findall(r'[\":]?([^\",:]+)[\":]?', topics_str)
+            key_topics = [topic.strip() for topic in topic_matches if topic.strip() and len(topic.strip()) > 2]
         
-        Parameters:
-        -----------
-        strategy : Dict[str, Any]
-            Details of the strategy being backtested.
-        **kwargs : dict
-            Additional parameters for backtest review.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            The backtest review.
-        """
-        return self.backtest_reviewer.review_backtest(strategy, **kwargs)
-    
-    def generate_decision(self, ticker: str, **kwargs) -> Dict[str, Any]:
-        """
-        Generate a trade decision.
+        # Extract key events
+        key_events = []
+        events_match = re.search(r'key_events[\":]?\s*[\":,]?\s*\[([\s\S]*?)\]', response)
+        if events_match:
+            events_str = events_match.group(1)
+            event_matches = re.findall(r'[\":]([^\"]+)[\":]', events_str)
+            key_events = [event.strip() for event in event_matches if event.strip()]
         
-        Parameters:
-        -----------
-        ticker : str
-            Ticker symbol for the asset.
-        **kwargs : dict
-            Additional parameters for decision generation.
-            
-        Returns:
-        --------
-        Dict[str, Any]
-            The generated trade decision.
-        """
-        return self.decision_engine.generate_decision(ticker, **kwargs)
+        # Extract potential impact
+        impact_match = re.search(r'potential_impact[\":]?\s*[\":,]?\s*[\":]?([^\"]+)[\":]?', response)
+        impact = impact_match.group(1) if impact_match else "Neutral impact expected"
+        
+        # Construct sentiment dictionary
+        sentiment = {
+            "ticker": ticker,
+            "sentiment": sentiment_value,
+            "confidence": confidence,
+            "key_topics": key_topics,
+            "key_events": key_events,
+            "potential_impact": impact,
+            "timestamp": datetime.datetime.now().isoformat()
+        }
+        
+        return sentiment

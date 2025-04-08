@@ -1,7 +1,7 @@
 """
-Unified Data Access Layer for Gemma Advanced Trading System.
+Data Access Module for Gemma Advanced Trading System.
 
-This module provides a unified interface for accessing market data from various sources.
+This module provides functions for accessing market data from various sources.
 """
 
 import os
@@ -9,453 +9,217 @@ import logging
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+import yfinance as yf
 
 # Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler('gemma_trading.log')
+    ]
+)
+
 logger = logging.getLogger("GemmaTrading.DataAccess")
 
-class MarketDataProvider:
+def get_market_data(ticker, period="1y", interval="1d", proxy=None):
     """
-    Unified interface for accessing market data from various sources.
-    
-    This class provides a consistent interface for fetching market data
-    regardless of the underlying data source (Alpha Vantage, Moomoo, Yahoo Finance, etc.)
-    """
-    
-    def __init__(self, api_key=None, data_source="synthetic"):
-        """
-        Initialize the market data provider.
-        
-        Parameters:
-        -----------
-        api_key : str, optional
-            API key for the data source
-        data_source : str, optional
-            Data source to use ("alpha_vantage", "moomoo", "yahoo", "synthetic")
-        """
-        self.api_key = api_key
-        self.data_source = data_source
-        self.logger = logging.getLogger("GemmaTrading.DataAccess")
-        self.logger.info(f"Initialized MarketDataProvider with source: {data_source}")
-        
-        # In a real implementation, we would initialize the appropriate client here
-        # based on the data_source parameter
-    
-    def fetch_historical_data(self, ticker, start_date=None, end_date=None, period="1y", interval="1d"):
-        """
-        Fetch historical market data for the specified ticker.
-        
-        Parameters:
-        -----------
-        ticker : str
-            The ticker symbol to fetch data for
-        start_date : str or datetime, optional
-            Start date in YYYY-MM-DD format or as datetime object
-        end_date : str or datetime, optional
-            End date in YYYY-MM-DD format or as datetime object
-        period : str, optional
-            Period to fetch data for (e.g., "1d", "1mo", "1y")
-        interval : str, optional
-            Data interval (e.g., "1m", "5m", "1h", "1d")
-            
-        Returns:
-        --------
-        pandas.DataFrame
-            Market data with columns: Open, High, Low, Close, Volume, Adj Close
-        """
-        self.logger.info(f"Fetching historical data for {ticker} from {self.data_source}")
-        
-        if self.data_source == "synthetic":
-            return self._generate_synthetic_data(ticker, start_date, end_date, period, interval)
-        elif self.data_source == "alpha_vantage":
-            # In a real implementation, we would call the Alpha Vantage API here
-            self.logger.warning("Alpha Vantage API not implemented yet, using synthetic data")
-            return self._generate_synthetic_data(ticker, start_date, end_date, period, interval)
-        elif self.data_source == "moomoo":
-            # In a real implementation, we would call the Moomoo API here
-            self.logger.warning("Moomoo API not implemented yet, using synthetic data")
-            return self._generate_synthetic_data(ticker, start_date, end_date, period, interval)
-        elif self.data_source == "yahoo":
-            # In a real implementation, we would use yfinance here
-            self.logger.warning("Yahoo Finance API not implemented yet, using synthetic data")
-            return self._generate_synthetic_data(ticker, start_date, end_date, period, interval)
-        else:
-            self.logger.error(f"Unknown data source: {self.data_source}")
-            raise ValueError(f"Unknown data source: {self.data_source}")
-    
-    def fetch_real_time_data(self, ticker):
-        """
-        Fetch real-time market data for the specified ticker.
-        
-        Parameters:
-        -----------
-        ticker : str
-            The ticker symbol to fetch data for
-            
-        Returns:
-        --------
-        dict
-            Real-time market data
-        """
-        self.logger.info(f"Fetching real-time data for {ticker} from {self.data_source}")
-        
-        if self.data_source == "synthetic":
-            # Generate a single data point with current timestamp
-            now = datetime.now()
-            last_close = 100 + np.random.normal(0, 1)
-            return {
-                'ticker': ticker,
-                'timestamp': now,
-                'last_price': last_close,
-                'bid': last_close - 0.01,
-                'ask': last_close + 0.01,
-                'volume': int(np.random.randint(1000, 10000)),
-                'change': np.random.normal(0, 0.5),
-                'change_percent': np.random.normal(0, 0.5)
-            }
-        else:
-            self.logger.warning(f"Real-time data not implemented for {self.data_source}, using synthetic data")
-            now = datetime.now()
-            last_close = 100 + np.random.normal(0, 1)
-            return {
-                'ticker': ticker,
-                'timestamp': now,
-                'last_price': last_close,
-                'bid': last_close - 0.01,
-                'ask': last_close + 0.01,
-                'volume': int(np.random.randint(1000, 10000)),
-                'change': np.random.normal(0, 0.5),
-                'change_percent': np.random.normal(0, 0.5)
-            }
-    
-    def fetch_company_info(self, ticker):
-        """
-        Fetch company information for the specified ticker.
-        
-        Parameters:
-        -----------
-        ticker : str
-            The ticker symbol to fetch data for
-            
-        Returns:
-        --------
-        dict
-            Company information
-        """
-        self.logger.info(f"Fetching company info for {ticker} from {self.data_source}")
-        
-        # For demonstration purposes, return synthetic company info
-        return {
-            'ticker': ticker,
-            'name': f"{ticker} Corporation",
-            'sector': "Technology",
-            'industry': "Software",
-            'market_cap': 1000000000,
-            'pe_ratio': 20.5,
-            'dividend_yield': 1.5,
-            'beta': 1.2,
-            'description': f"This is a synthetic description for {ticker} Corporation."
-        }
-    
-    def fetch_market_news(self, ticker=None, limit=10):
-        """
-        Fetch market news for the specified ticker or general market news.
-        
-        Parameters:
-        -----------
-        ticker : str, optional
-            The ticker symbol to fetch news for, or None for general market news
-        limit : int, optional
-            Maximum number of news items to return
-            
-        Returns:
-        --------
-        list of dict
-            News items
-        """
-        self.logger.info(f"Fetching market news for {ticker if ticker else 'general market'} from {self.data_source}")
-        
-        # For demonstration purposes, return synthetic news
-        news = []
-        for i in range(limit):
-            news.append({
-                'title': f"{'Ticker-specific' if ticker else 'Market'} News Item {i+1}",
-                'date': datetime.now() - timedelta(hours=i),
-                'source': "Synthetic News Source",
-                'url': "https://example.com/news",
-                'summary': f"This is a synthetic news item {'about ' + ticker if ticker else 'about the market'}."
-            })
-        
-        return news
-    
-    def search_tickers(self, query):
-        """
-        Search for tickers matching the specified query.
-        
-        Parameters:
-        -----------
-        query : str
-            Search query
-            
-        Returns:
-        --------
-        list of dict
-            Matching tickers
-        """
-        self.logger.info(f"Searching for tickers matching '{query}' from {self.data_source}")
-        
-        # For demonstration purposes, return synthetic search results
-        results = []
-        for i in range(5):
-            results.append({
-                'ticker': f"{query.upper()}{i}",
-                'name': f"{query.capitalize()} Corporation {i}",
-                'exchange': "NYSE" if i % 2 == 0 else "NASDAQ"
-            })
-        
-        return results
-    
-    def _generate_synthetic_data(self, ticker, start_date=None, end_date=None, period="1y", interval="1d"):
-        """
-        Generate synthetic market data for demonstration purposes.
-        
-        Parameters:
-        -----------
-        ticker : str
-            The ticker symbol to generate data for
-        start_date : str or datetime, optional
-            Start date in YYYY-MM-DD format or as datetime object
-        end_date : str or datetime, optional
-            End date in YYYY-MM-DD format or as datetime object
-        period : str, optional
-            Period to generate data for (e.g., "1d", "1mo", "1y")
-        interval : str, optional
-            Data interval (e.g., "1m", "5m", "1h", "1d")
-            
-        Returns:
-        --------
-        pandas.DataFrame
-            Synthetic market data
-        """
-        self.logger.info(f"Generating synthetic data for {ticker}")
-        
-        # Parse dates or use defaults
-        if not end_date:
-            end_date = datetime.now()
-        elif isinstance(end_date, str):
-            end_date = datetime.strptime(end_date, "%Y-%m-%d")
-        
-        if not start_date:
-            if period == "1d":
-                start_date = end_date - timedelta(days=1)
-            elif period == "1w":
-                start_date = end_date - timedelta(days=7)
-            elif period == "1mo":
-                start_date = end_date - timedelta(days=30)
-            elif period == "3mo":
-                start_date = end_date - timedelta(days=90)
-            elif period == "6mo":
-                start_date = end_date - timedelta(days=180)
-            elif period == "1y":
-                start_date = end_date - timedelta(days=365)
-            elif period == "2y":
-                start_date = end_date - timedelta(days=730)
-            elif period == "5y":
-                start_date = end_date - timedelta(days=1825)
-            else:
-                start_date = end_date - timedelta(days=365)  # Default to 1 year
-        elif isinstance(start_date, str):
-            start_date = datetime.strptime(start_date, "%Y-%m-%d")
-        
-        # Determine frequency based on interval
-        if interval == "1m":
-            freq = "1min"
-            # For minute data, only generate for market hours of the most recent day
-            if (end_date - start_date).days > 1:
-                start_date = end_date.replace(hour=9, minute=30, second=0)
-                end_date = end_date.replace(hour=16, minute=0, second=0)
-        elif interval == "5m":
-            freq = "5min"
-            # For minute data, only generate for market hours of the most recent day
-            if (end_date - start_date).days > 1:
-                start_date = end_date.replace(hour=9, minute=30, second=0)
-                end_date = end_date.replace(hour=16, minute=0, second=0)
-        elif interval == "15m":
-            freq = "15min"
-            # For minute data, only generate for market hours of the most recent day
-            if (end_date - start_date).days > 1:
-                start_date = end_date.replace(hour=9, minute=30, second=0)
-                end_date = end_date.replace(hour=16, minute=0, second=0)
-        elif interval == "30m":
-            freq = "30min"
-            # For minute data, only generate for market hours of the most recent day
-            if (end_date - start_date).days > 1:
-                start_date = end_date.replace(hour=9, minute=30, second=0)
-                end_date = end_date.replace(hour=16, minute=0, second=0)
-        elif interval == "1h":
-            freq = "1H"
-            # For hourly data, only generate for market hours
-            if (end_date - start_date).days > 1:
-                business_days = pd.date_range(start=start_date, end=end_date, freq="B")
-                date_range = []
-                for day in business_days:
-                    for hour in range(9, 17):
-                        date_range.append(day.replace(hour=hour, minute=0, second=0))
-                date_range = pd.DatetimeIndex(date_range)
-            else:
-                date_range = pd.date_range(start=start_date, end=end_date, freq=freq)
-        elif interval == "1d":
-            freq = "B"  # Business day frequency
-            date_range = pd.date_range(start=start_date, end=end_date, freq=freq)
-        elif interval == "1wk":
-            freq = "W-FRI"  # Weekly frequency, Friday is the last business day of the week
-            date_range = pd.date_range(start=start_date, end=end_date, freq=freq)
-        elif interval == "1mo":
-            freq = "BM"  # Business month end frequency
-            date_range = pd.date_range(start=start_date, end=end_date, freq=freq)
-        else:
-            freq = "B"  # Default to business day frequency
-            date_range = pd.date_range(start=start_date, end=end_date, freq=freq)
-        
-        # Generate date range if not already created
-        if 'date_range' not in locals():
-            date_range = pd.date_range(start=start_date, end=end_date, freq=freq)
-        
-        # Generate synthetic price data with a trend and some volatility
-        base_price = 100.0
-        trend = np.linspace(0, 20, len(date_range))
-        volatility = np.random.normal(0, 1, len(date_range))
-        
-        # Create price series with some seasonality and momentum
-        close_prices = base_price + trend + volatility * 5 + np.sin(np.linspace(0, 10, len(date_range))) * 10
-        
-        # Create high, low, open prices based on close
-        high_prices = close_prices + np.random.uniform(0.5, 2.0, len(date_range))
-        low_prices = close_prices - np.random.uniform(0.5, 2.0, len(date_range))
-        open_prices = low_prices + np.random.uniform(0, 1, len(date_range)) * (high_prices - low_prices)
-        
-        # Generate volume data
-        volume = np.random.randint(100000, 1000000, len(date_range))
-        
-        # Create DataFrame
-        data = pd.DataFrame({
-            'Open': open_prices,
-            'High': high_prices,
-            'Low': low_prices,
-            'Close': close_prices,
-            'Adj Close': close_prices,
-            'Volume': volume
-        }, index=date_range)
-        
-        return data
-
-
-# Create a singleton instance for easy access
-market_data = MarketDataProvider()
-
-def get_provider(api_key=None, data_source="synthetic"):
-    """
-    Get a configured MarketDataProvider instance.
-    
-    Parameters:
-    -----------
-    api_key : str, optional
-        API key for the data source
-    data_source : str, optional
-        Data source to use ("alpha_vantage", "moomoo", "yahoo", "synthetic")
-        
-    Returns:
-    --------
-    MarketDataProvider
-        Configured market data provider
-    """
-    return MarketDataProvider(api_key, data_source)
-
-def fetch_historical_data(ticker, start_date=None, end_date=None, period="1y", interval="1d"):
-    """
-    Fetch historical market data for the specified ticker using the default provider.
+    Get market data for a ticker from Yahoo Finance.
     
     Parameters:
     -----------
     ticker : str
-        The ticker symbol to fetch data for
-    start_date : str or datetime, optional
-        Start date in YYYY-MM-DD format or as datetime object
-    end_date : str or datetime, optional
-        End date in YYYY-MM-DD format or as datetime object
+        The ticker symbol to get data for
     period : str, optional
         Period to fetch data for (e.g., "1d", "1mo", "1y")
     interval : str, optional
         Data interval (e.g., "1m", "5m", "1h", "1d")
+    proxy : str, optional
+        Proxy server URL
         
     Returns:
     --------
     pandas.DataFrame
-        Market data with columns: Open, High, Low, Close, Volume, Adj Close
+        Market data with columns: Open, High, Low, Close, Volume, etc.
     """
-    return market_data.fetch_historical_data(ticker, start_date, end_date, period, interval)
+    logger.info(f"Getting market data for {ticker} with period={period}, interval={interval}")
+    
+    try:
+        # Get data from Yahoo Finance
+        data = yf.download(
+            tickers=ticker,
+            period=period,
+            interval=interval,
+            proxy=proxy,
+            progress=False
+        )
+        
+        # Check if data is empty
+        if data.empty:
+            logger.warning(f"No data found for {ticker}")
+            return None
+        
+        # Reset index to make Date a column
+        data = data.reset_index()
+        
+        # Rename columns
+        data.columns = [col if col != 'Date' else 'date' for col in data.columns]
+        data.columns = [col if col != 'Adj Close' else 'adj_close' for col in data.columns]
+        data.columns = [col.lower() for col in data.columns]
+        
+        logger.info(f"Got {len(data)} rows of data for {ticker}")
+        
+        return data
+    
+    except Exception as e:
+        logger.exception(f"Error getting market data for {ticker}: {e}")
+        return None
 
-def fetch_real_time_data(ticker):
+def get_ticker_info(ticker):
     """
-    Fetch real-time market data for the specified ticker using the default provider.
+    Get information about a ticker from Yahoo Finance.
     
     Parameters:
     -----------
     ticker : str
-        The ticker symbol to fetch data for
+        The ticker symbol to get info for
         
     Returns:
     --------
     dict
-        Real-time market data
+        Ticker information
     """
-    return market_data.fetch_real_time_data(ticker)
+    logger.info(f"Getting ticker info for {ticker}")
+    
+    try:
+        # Get ticker info from Yahoo Finance
+        ticker_obj = yf.Ticker(ticker)
+        info = ticker_obj.info
+        
+        logger.info(f"Got info for {ticker}")
+        
+        return info
+    
+    except Exception as e:
+        logger.exception(f"Error getting ticker info for {ticker}: {e}")
+        return None
 
-def fetch_company_info(ticker):
+def get_market_news(ticker, limit=10):
     """
-    Fetch company information for the specified ticker using the default provider.
+    Get news for a ticker.
     
     Parameters:
     -----------
     ticker : str
-        The ticker symbol to fetch data for
-        
-    Returns:
-    --------
-    dict
-        Company information
-    """
-    return market_data.fetch_company_info(ticker)
-
-def fetch_market_news(ticker=None, limit=10):
-    """
-    Fetch market news for the specified ticker or general market news using the default provider.
-    
-    Parameters:
-    -----------
-    ticker : str, optional
-        The ticker symbol to fetch news for, or None for general market news
+        The ticker symbol to get news for
     limit : int, optional
         Maximum number of news items to return
         
     Returns:
     --------
-    list of dict
-        News items
+    list
+        List of news items
     """
-    return market_data.fetch_market_news(ticker, limit)
+    logger.info(f"Getting news for {ticker}")
+    
+    try:
+        # Get ticker news from Yahoo Finance
+        ticker_obj = yf.Ticker(ticker)
+        news = ticker_obj.news
+        
+        # Limit number of news items
+        if limit and len(news) > limit:
+            news = news[:limit]
+        
+        logger.info(f"Got {len(news)} news items for {ticker}")
+        
+        return news
+    
+    except Exception as e:
+        logger.exception(f"Error getting news for {ticker}: {e}")
+        return []
 
-def search_tickers(query):
+def save_data(data, filename, directory=None):
     """
-    Search for tickers matching the specified query using the default provider.
+    Save data to a file.
     
     Parameters:
     -----------
-    query : str
-        Search query
+    data : pandas.DataFrame
+        Data to save
+    filename : str
+        Filename to save to
+    directory : str, optional
+        Directory to save to
         
     Returns:
     --------
-    list of dict
-        Matching tickers
+    str
+        Path to saved file
     """
-    return market_data.search_tickers(query)
+    logger.info(f"Saving data to {filename}")
+    
+    try:
+        # Create directory if it doesn't exist
+        if directory:
+            os.makedirs(directory, exist_ok=True)
+            filepath = os.path.join(directory, filename)
+        else:
+            filepath = filename
+        
+        # Save data based on file extension
+        if filename.endswith('.csv'):
+            data.to_csv(filepath, index=False)
+        elif filename.endswith('.json'):
+            data.to_json(filepath, orient='records')
+        elif filename.endswith('.xlsx'):
+            data.to_excel(filepath, index=False)
+        else:
+            # Default to CSV
+            filepath = f"{filepath}.csv"
+            data.to_csv(filepath, index=False)
+        
+        logger.info(f"Saved data to {filepath}")
+        
+        return filepath
+    
+    except Exception as e:
+        logger.exception(f"Error saving data to {filename}: {e}")
+        return None
+
+def load_data(filepath):
+    """
+    Load data from a file.
+    
+    Parameters:
+    -----------
+    filepath : str
+        Path to file to load
+        
+    Returns:
+    --------
+    pandas.DataFrame
+        Loaded data
+    """
+    logger.info(f"Loading data from {filepath}")
+    
+    try:
+        # Load data based on file extension
+        if filepath.endswith('.csv'):
+            data = pd.read_csv(filepath)
+        elif filepath.endswith('.json'):
+            data = pd.read_json(filepath)
+        elif filepath.endswith('.xlsx'):
+            data = pd.read_excel(filepath)
+        else:
+            logger.error(f"Unsupported file format: {filepath}")
+            return None
+        
+        logger.info(f"Loaded {len(data)} rows from {filepath}")
+        
+        return data
+    
+    except Exception as e:
+        logger.exception(f"Error loading data from {filepath}: {e}")
+        return None
