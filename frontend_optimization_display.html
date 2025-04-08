@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemma Advanced Trading System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+        }
+        
+        .navbar {
+            background-color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: white !important;
+        }
+        
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+            font-weight: 500;
+        }
+        
+        .nav-link:hover {
+            color: white !important;
+        }
+        
+        .sidebar {
+            background-color: white;
+            border-right: 1px solid #dee2e6;
+            height: calc(100vh - 56px);
+            position: sticky;
+            top: 56px;
+            padding-top: 20px;
+        }
+        
+        .sidebar-item {
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 5px 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .sidebar-item:hover {
+            background-color: var(--light-color);
+        }
+        
+        .sidebar-item.active {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .main-content {
+            padding: 20px;
+        }
+        
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: none;
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: 600;
+            padding: 15px 20px;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+        
+        .badge-success {
+            background-color: var(--success-color);
+        }
+        
+        .badge-warning {
+            background-color: var(--warning-color);
+        }
+        
+        .badge-danger {
+            background-color: var(--danger-color);
+        }
+        
+        .progress {
+            height: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .strategy-card {
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .strategy-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chart-container {
+            height: 300px;
+            margin-bottom: 20px;
+        }
+        
+        .optimization-step {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--secondary-color);
+        }
+        
+        .optimization-step.active {
+            background-color: rgba(52, 152, 219, 0.1);
+            border-left: 4px solid var(--secondary-color);
+        }
+        
+        .optimization-step.completed {
+            background-color: rgba(46, 204, 113, 0.1);
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .optimization-step.failed {
+            background-color: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid var(--danger-color);
+        }
+        
+        .metric-card {
+            text-align: center;
+            padding: 15px;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        
+        .metric-label {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        
+        .threshold-slider {
+            margin: 20px 0;
+        }
+        
+        .memory-control {
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .memory-slider {
+            margin: 15px 0;
+        }
+        
+        .refinement-history {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .strategy-comparison {
+            overflow-x: auto;
+        }
+        
+        .comparison-table {
+            min-width: 800px;
+        }
+        
+        .validation-result {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .validation-result.pass {
+            background-color: var(--success-color);
+        }
+        
+        .validation-result.fail {
+            background-color: var(--danger-color);
+        }
+        
+        .performance-chart {
+            height: 250px;
+            margin-bottom: 20px;
+        }
+        
+        .optimization-progress {
+            position: relative;
+            margin-bottom: 30px;
+        }
+        
+        .optimization-timeline {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .timeline-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+        
+        .timeline-step::before {
+            content: '';
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            background-color: #dee2e6;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+        }
+        
+        .timeline-step::after {
+            content: '';
+            position: absolute;
+            top: 39px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #dee2e6;
+            z-index: 1;
+        }
+        
+        .timeline-step:last-child::after {
+            display: none;
+        }
+        
+        .timeline-step.active::before {
+            background-color: var(--secondary-color);
+        }
+        
+        .timeline-step.completed::before {
+            background-color: var(--success-color);
+        }
+        
+        .timeline-step.failed::before {
+            background-color: var(--danger-color);
+        }
+        
+        .timeline-label {
+            margin-top: 40px;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-graph-up"></i> Gemma Advanced Trading
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-gear"></i> Strategy Builder</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-search"></i> Market Scanner</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-clock-history"></i> Backtesting</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-journal-text"></i> Trade Journal</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-sliders"></i> Settings</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-question-circle"></i> Help</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-person-circle"></i> Profile</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 d-none d-md-block sidebar">
+                <div class="sidebar-item active">
+                    <i class="bi bi-lightning"></i> Strategy Generator
+                </div>
+                <div class="sidebar-item">
+                    <i class="bi bi-pie-chart"></i> Portfolio Overview
+                </div>
+                <div class="sidebar-item">
+                    <i class="bi bi-graph-up"></i> Market Analysis
+                </div>
+                <div class="sidebar-item">
+                    <i class="bi bi-newspaper"></i> News & Sentiment
+                </div>
+                <div class="sidebar-item">
+                    <i class="bi bi-calendar-event"></i> Economic Calendar
+                </div>
+                <div class="sidebar-item">
+                    <i class="bi bi-bell"></i> Alerts
+                </div>
+                <div class="sidebar-item">
+                    <i class="bi bi-gear"></i> Settings
+                </div>
+                
+                <hr>
+                
+                <div class="p-3">
+                    <h6 class="text-muted mb-3">Memory Module Control</h6>
+                    
+                    <div class="memory-slider">
+                        <label class="form-label">Trade History Depth</label>
+                        <input type="range" class="form-range" min="0" max="100" value="70">
+                    </div>
+                    
+                    <div class="memory-slider">
+                        <label class="form-label">Market Pattern Recognition</label>
+                        <input type="range" class="form-range" min="0" max="100" value="85">
+                    </div>
+                    
+                    <div class="memory-slider">
+                        <label class="form-label">Sentiment Analysis Weight</label>
+                        <input type="range" class="form-range" min="0" max="100" value="60">
+                    </div>
+                    
+                    <div class="memory-slider">
+                        <label class="form-label">Technical Indicator Memory</label>
+                        <input type="range" class="form-range" min="0" max="100" value="75">
+                    </div>
+                    
+                    <div class="memory-slider">
+                        <label class="form-label">Adaptive Learning Rate</label>
+                        <input type="range" class="form-range" min="0" max="100" value="65">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10 ms-sm-auto main-content">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">Strategy Optimization Dashboard</h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
+                            <i class="bi bi-calendar"></i> This week
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Strategy Generation Form -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span>Generate Optimized Trading Strategy</span>
+                                <button class="btn btn-primary btn-sm">
+                                    <i class="bi bi-lightning"></i> Generate Strategy
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Ticker Symbol</label>
+                                            <input type="text" class="form-control" value="AAPL">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Strategy Type</label>
+                                            <select class="form-select">
+                                                <option>Swing Trading</option>
+                                                <option>Day Trading</option>
+                                                <option>Position Trading</option>
+                                                <option>Trend Following</option>
+                                                <option>Mean Reversion</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Time Horizon</label>
+                                            <select class="form-select">
+                                                <option>Short Term (Days)</option>
+                                                <option selected>Medium Term (Weeks)</option>
+                                                <option>Long Term (Months)</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Risk Tolerance</label>
+                                            <select class="form-select">
+                                                <option>Conservative</option>
+                                                <option selected>Moderate</option>
+                                                <option>Aggressive</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Performance Thresholds</label>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" checked>
+                                                <label class="form-check-label">Positive Total Return</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" checked>
+                                                <label class="form-check-label">Sharpe Ratio > 0.5</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" checked>
+                                                <label class="form-check-label">Max Drawdown < 20%</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" checked>
+                                                <label class="form-check-label">Win Rate > 50%</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Optimization Process Visualization -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <span>Strategy Optimization Process</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="optimization-progress">
+                                    <div class="optimization-timeline">
+                                        <div class="timeline-step completed">
+                                            <div class="timeline-label">Strategy Generation</div>
+                                        </div>
+                                        <div class="timeline-step completed">
+                                            <div class="timeline-label">Performance Validation</div>
+                                        </div>
+                                        <div class="timeline-step completed">
+                                            <div class="timeline-label">Strategy Refinement</div>
+                                        </div>
+                                        <div class="timeline-step active">
+                                            <div class="timeline-label">Backtesting</div>
+                                        </div>
+                                        <div class="timeline-step">
+                                            <div class="timeline-label">Final Validation</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="optimization-step completed">
+                                            <h5><i class="bi bi-check-circle-fill text-success"></i> Strategy Generation</h5>
+                                            <p>Generated 3 candidate strategies based on market conditions and trading objectives.</p>
+                                            <div class="d-flex justify-content-between">
+                                                <small class="text-muted">Completed in 2.3 seconds</small>
+                                                <span class="badge bg-success">Completed</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="optimization-step completed">
+                                            <h5><i class="bi bi-check-circle-fill text-success"></i> Performance Validation</h5>
+                                            <p>Validated strategies against performance thresholds. 1 of 3 strategies passed initial validation.</p>
+                                            <div class="d-flex justify-content-between">
+                                                <small class="text-muted">Completed in 1.5 seconds</small>
+                                                <span class="badge bg-success">Completed</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="optimization-step completed">
+                                            <h5><i class="bi bi-check-circle-fill text-success"></i> Strategy Refinement</h5>
+                                            <p>Refined 2 strategies that didn't meet performance thresholds. 1 additional strategy now meets thresholds after refinement.</p>
+                                            <div class="d-flex justify-content-between">
+                                                <small class="text-muted">Completed in 3.7 seconds</small>
+                                                <span class="badge bg-success">Completed</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="optimization-step active">
+                                            <h5><i class="bi bi-arrow-repeat text-primary"></i> Backtesting</h5>
+                                            <p>Running comprehensive backtests on 2 strategies that meet performance thresholds.</p>
+                                            <div class="progress">
+                                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 75%"></div>
+                                            </div>
+                                            <div class="d-flex justify-content-between">
+                                                <small class="text-muted">Running for 4.2 seconds</small>
+                                                <span class="badge bg-primary">In Progress</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="optimization-step">
+                                            <h5><i class="bi bi-hourglass text-secondary"></i> Final Validation</h5>
+                                            <p>Validating final strategy against performance thresholds and selecting the best one.</p>
+                                            <div class="d-flex justify-content-between">
+                                                <small class="text-muted">Pending</small>
+                                                <span class="badge bg-secondary">Pending</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <span>Performance Improvement</span>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="performance-chart">
+                                                    <img src="/static/AAPL_price_plot.png" alt="Performance Chart" class="img-fluid">
+                                                </div>
+                                                
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="metric-card">
+                                                            <div class="metric-label">Initial Return</div>
+                                                            <div class="metric-value text-danger">-30.90%</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="metric-card">
+                                                            <div class="metric-label">Optimized Return</div>
+                                                            <div class="metric-value text-success">+12.45%</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="row mt-3">
+                                                    <div class="col-md-6">
+                                                        <div class="metric-card">
+                                                            <div class="metric-label">Initial Sharpe</div>
+                                                            <div class="metric-value text-danger">-3.37</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="metric-card">
+                                                            <div class="metric-label">Optimized Sharpe</div>
+                                                            <div class="metric-value text-success">1.23</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="row mt-3">
+                                                    <div class="col-md-6">
+                                                        <div class="metric-card">
+                                                            <div class="metric-label">Initial Drawdown</div>
+                                                            <div class="metric-value text-danger">-33.36%</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="metric-card">
+                                                            <div class="metric-label">Optimized Drawdown</div>
+                                                            <div class="metric-value text-warning">-15.82%</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Strategy Comparison -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <span>Strategy Comparison</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="strategy-comparison">
+                                    <table class="table comparison-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Strategy</th>
+                                                <th>Type</th>
+                                                <th>Total Return</th>
+                                                <th>Sharpe Ratio</th>
+                                                <th>Max Drawdown</th>
+                                                <th>Win Rate</th>
+                                                <th>Validation</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Strategy 1 (Initial)</td>
+                                                <td>Swing Trading</td>
+                                                <td class="text-danger">-30.90%</td>
+                                                <td class="text-danger">-3.37</td>
+                                                <td class="text-danger">-33.36%</td>
+                                                <td>100%</td>
+                                                <td>
+                                                    <span class="validation-result fail" title="Failed: Total Return"></span>
+                                                    <span class="validation-result fail" title="Failed: Sharpe Ratio"></span>
+                                                    <span class="validation-result fail" title="Failed: Max Drawdown"></span>
+                                                    <span class="validation-result pass" title="Passed: Win Rate"></span>
+                                                </td>
+                                                <td><span class="badge bg-danger">Failed</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Strategy 2 (Candidate)</td>
+                                                <td>Mean Reversion</td>
+                                                <td class="text-success">+8.72%</td>
+                                                <td class="text-success">0.95</td>
+                                                <td class="text-warning">-18.45%</td>
+                                                <td>62%</td>
+                                                <td>
+                                                    <span class="validation-result pass" title="Passed: Total Return"></span>
+                                                    <span class="validation-result pass" title="Passed: Sharpe Ratio"></span>
+                                                    <span class="validation-result pass" title="Passed: Max Drawdown"></span>
+                                                    <span class="validation-result pass" title="Passed: Win Rate"></span>
+                                                </td>
+                                                <td><span class="badge bg-success">Passed</span></td>
+                                            </tr>
+                                            <tr class="table-primary">
+                                                <td>Strategy 3 (Optimized)</td>
+                                                <td>Trend Following</td>
+                                                <td class="text-success">+12.45%</td>
+                                                <td class="text-success">1.23</td>
+                                                <td class="text-warning">-15.82%</td>
+                                                <td>68%</td>
+                                                <td>
+                                                    <span class="validation-result pass" title="Passed: Total Return"></span>
+                                                    <span class="validation-result pass" title="Passed: Sharpe Ratio"></span>
+                                                    <span class="validation-result pass" title="Passed: Max Drawdown"></span>
+                                                    <span class="validation-result pass" title="Passed: Win Rate"></span>
+                                                </td>
+                                                <td><span class="badge bg-success">Selected</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Refinement History -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <span>Strategy Refinement History</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="refinement-history">
+                                    <div class="optimization-step completed">
+                                        <h5>Initial Strategy</h5>
+                                        <p>Original strategy generated based on market conditions and trading objectives.</p>
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <div class="metric-card">
+                                                    <div class="metric-label">Total Return</div>
+                                                    <div class="metric-value text-danger">-30.90%</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="metric-card">
+                                                    <div class="metric-label">Sharpe Ratio</div>
+                                                    <div class="metric-value text-danger">-3.37</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="metric-card">
+                                                    <div class="metric-label">Max Drawdown</div>
+                                                    <div class="metric-value text-danger">-33.36%</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="metric-card">
+                                                    <div class="metric-label">Win Rate</div>
+                                                    <div class="metric-value">100%</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="optimization-step completed">
+                                        <h5>Refinement Iteration 1</h5>
+                                        <p>Added trend strength filter and adjusted entry criteria to wait for stronger confirmation.</p>
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <div class="metric-card">
+                                                    <div class="metric-label">Total Return</div>
+                                                    <div class="metric-value text-danger">-12.35%</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="metric-card">
+                                                    <div class="metric-label">Sharpe Ratio</div>
+                                                    <div class="metric-value text-danger">-1.45</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="metric-card">
+                                                    <div class="metric-label">Max Drawdown</div>
+                                                    <div class="metric-value text-danger">-25.67%</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="metric-card">
+                                                    <div class="metric-label">Win Rate</div>
+                                                    <div class="metric-value">75%</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="optimization-step completed">
+                                        <h5>Refinement Iteration 2</h5>
+                                        <p>Implemented volatility-based position sizing and added market regime filter.</p>
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <div class="metric-card">
+                                                    <div class="metric-label">Total Return</div>
+                                                    <div class="metric-value text-warning">+3.82%</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="metric-card">
+                                                    <div class="metric-label">Sharpe Ratio</div>
+                                                    <div class="metric-value text-warning">0.42</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="metric-card">
+                                                    <div class="metric-label">Max Drawdown</div>
+                                                    <div class="metric-value text-warning">-21.34%</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="metric-card">
+                                                    <div class="metric-label">Win Rate</div>
+                                                    <div class="metric-value">58%</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="optimization-step completed">
+                                        <h5>Refinement Iteration 3</h5>
+                                        <p>Added drawdown protection rules and implemented trailing stops.</p>
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <div class="metric-card">
+                                                    <div class="metric-label">Total Return</div>
+                                                    <div class="metric-value text-success">+12.45%</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="metric-card">
+                                                    <div class="metric-label">Sharpe Ratio</div>
+                                                    <div class="metric-value text-success">1.23</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="metric-card">
+                                                    <div class="metric-label">Max Drawdown</div>
+                                                    <div class="metric-value text-warning">-15.82%</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="metric-card">
+                                                    <div class="metric-label">Win Rate</div>
+                                                    <div class="metric-value">68%</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Optimized Strategy Details -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span>Optimized Strategy Details</span>
+                                <button class="btn btn-success btn-sm">
+                                    <i class="bi bi-download"></i> Download Strategy
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h5 class="mb-3">Strategy Overview</h5>
+                                        <table class="table">
+                                            <tbody>
+                                                <tr>
+                                                    <th>Ticker</th>
+                                                    <td>AAPL</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Strategy Type</th>
+                                                    <td>Trend Following</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Recommendation</th>
+                                                    <td><span class="badge bg-success">BUY</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Current Price</th>
+                                                    <td>$172.42</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Trend</th>
+                                                    <td>Bullish</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Momentum</th>
+                                                    <td>Strong</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Volatility</th>
+                                                    <td>Moderate (2.26%)</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Support Level</th>
+                                                    <td>$169.21</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Resistance Level</th>
+                                                    <td>$178.95</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <h5 class="mb-3">Performance Metrics</h5>
+                                        <table class="table">
+                                            <tbody>
+                                                <tr>
+                                                    <th>Total Return</th>
+                                                    <td class="text-success">+12.45%</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Sharpe Ratio</th>
+                                                    <td class="text-success">1.23</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Max Drawdown</th>
+                                                    <td class="text-warning">-15.82%</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Win Rate</th>
+                                                    <td>68%</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Volatility</th>
+                                                    <td>2.26%</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Number of Trades</th>
+                                                    <td>22</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Average Holding Period</th>
+                                                    <td>8.3 days</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Profit Factor</th>
+                                                    <td>1.85</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Recovery Factor</th>
+                                                    <td>0.79</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mt-4">
+                                    <div class="col-md-12">
+                                        <h5 class="mb-3">Risk Management</h5>
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <div class="metric-card">
+                                                    <div class="metric-label">Entry Price</div>
+                                                    <div class="metric-value">$172.42</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="metric-card">
+                                                    <div class="metric-label">Stop Loss</div>
+                                                    <div class="metric-value">$167.25</div>
+                                                    <div class="metric-label">(-3.0%)</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="metric-card">
+                                                    <div class="metric-label">Take Profit</div>
+                                                    <div class="metric-value">$181.04</div>
+                                                    <div class="metric-label">(+5.0%)</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="metric-card">
+                                                    <div class="metric-label">Position Size</div>
+                                                    <div class="metric-value">5%</div>
+                                                    <div class="metric-label">of portfolio</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mt-4">
+                                    <div class="col-md-12">
+                                        <h5 class="mb-3">Strategy Description</h5>
+                                        <p>This bullish strategy for AAPL is based on a combination of trend following and momentum indicators. The 20-day SMA is above the 50-day SMA, indicating a bullish trend. The RSI shows strong momentum, and the MACD confirms the bullish momentum. This strategy has demonstrated a historical return of 12.45% with a Sharpe ratio of 1.23.</p>
+                                        <p>The strategy recommends a BUY position with a stop loss at $167.25 and a take profit at $181.04. This strategy was optimized through 3 iterations to ensure positive historical performance.</p>
+                                        <p>Key improvements made during optimization include:</p>
+                                        <ul>
+                                            <li>Added trend strength filter to ensure trades align with the prevailing market direction</li>
+                                            <li>Implemented volatility-based position sizing to manage risk more effectively</li>
+                                            <li>Added market regime filter to avoid trading during unfavorable market conditions</li>
+                                            <li>Implemented trailing stops and drawdown protection rules to limit losses</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mt-4">
+                                    <div class="col-md-12">
+                                        <h5 class="mb-3">Charts</h5>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <img src="/static/AAPL_price_plot.png" alt="Price Chart" class="img-fluid mb-3">
+                                                <p class="text-center">Price with Moving Averages</p>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <img src="/static/AAPL_rsi_plot.png" alt="RSI Chart" class="img-fluid mb-3">
+                                                <p class="text-center">RSI Indicator</p>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <img src="/static/AAPL_macd_plot.png" alt="MACD Chart" class="img-fluid mb-3">
+                                                <p class="text-center">MACD Indicator</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

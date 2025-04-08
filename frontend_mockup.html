@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemma Advanced Trading System - AAPL Strategy</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .nav {
+            display: flex;
+        }
+        .nav-item {
+            margin-left: 20px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 4px;
+        }
+        .nav-item.active {
+            background-color: #3498db;
+        }
+        .main {
+            display: flex;
+            margin-top: 20px;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-right: 20px;
+        }
+        .sidebar-item {
+            padding: 12px 8px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        .sidebar-item.active {
+            background-color: #f0f7ff;
+            color: #3498db;
+            font-weight: bold;
+        }
+        .content {
+            flex: 1;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        .strategy-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .strategy-title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .recommendation {
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: white;
+        }
+        .recommendation.buy {
+            background-color: #2ecc71;
+        }
+        .recommendation.sell {
+            background-color: #e74c3c;
+        }
+        .recommendation.hold {
+            background-color: #f39c12;
+        }
+        .metrics {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .metric-card {
+            width: calc(33.33% - 20px);
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-right: 20px;
+            margin-bottom: 20px;
+        }
+        .metric-card:nth-child(3n) {
+            margin-right: 0;
+        }
+        .metric-title {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+        .metric-value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .charts {
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            margin-bottom: 20px;
+        }
+        .chart-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .chart-image {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .strategy-details {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .details-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .details-text {
+            line-height: 1.6;
+        }
+        .risk-management {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .risk-item {
+            width: calc(50% - 10px);
+            margin-right: 20px;
+            margin-bottom: 10px;
+        }
+        .risk-item:nth-child(2n) {
+            margin-right: 0;
+        }
+        .risk-label {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        .risk-value {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .memory-module {
+            margin-top: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .memory-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .memory-controls {
+            display: flex;
+            flex-direction: column;
+        }
+        .memory-control {
+            margin-bottom: 15px;
+        }
+        .memory-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .memory-slider {
+            width: 100%;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">Gemma Advanced Trading System</div>
+        <div class="nav">
+            <div class="nav-item active">Dashboard</div>
+            <div class="nav-item">Strategy Builder</div>
+            <div class="nav-item">Market Scanner</div>
+            <div class="nav-item">Backtesting</div>
+            <div class="nav-item">Trade Journal</div>
+            <div class="nav-item">Settings</div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="main">
+            <div class="sidebar">
+                <div class="sidebar-item active">Strategy Generator</div>
+                <div class="sidebar-item">Portfolio Overview</div>
+                <div class="sidebar-item">Market Analysis</div>
+                <div class="sidebar-item">News & Sentiment</div>
+                <div class="sidebar-item">Performance Metrics</div>
+                <div class="sidebar-item">Risk Management</div>
+                <div class="sidebar-item">Alerts & Notifications</div>
+                
+                <div class="memory-module">
+                    <div class="memory-title">Memory Module Control</div>
+                    <div class="memory-controls">
+                        <div class="memory-control">
+                            <label class="memory-label">Trade History Depth</label>
+                            <input type="range" class="memory-slider" min="1" max="10" value="7">
+                        </div>
+                        <div class="memory-control">
+                            <label class="memory-label">Market Pattern Recognition</label>
+                            <input type="range" class="memory-slider" min="1" max="10" value="8">
+                        </div>
+                        <div class="memory-control">
+                            <label class="memory-label">Sentiment Analysis Weight</label>
+                            <input type="range" class="memory-slider" min="1" max="10" value="6">
+                        </div>
+                        <div class="memory-control">
+                            <label class="memory-label">Technical Indicator Memory</label>
+                            <input type="range" class="memory-slider" min="1" max="10" value="9">
+                        </div>
+                        <div class="memory-control">
+                            <label class="memory-label">Adaptive Learning Rate</label>
+                            <input type="range" class="memory-slider" min="1" max="10" value="5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content">
+                <div class="strategy-header">
+                    <div class="strategy-title">AAPL Swing Trading Strategy</div>
+                    <div class="recommendation sell">SELL</div>
+                </div>
+                
+                <div class="metrics">
+                    <div class="metric-card">
+                        <div class="metric-title">Trend</div>
+                        <div class="metric-value">Bearish</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Momentum</div>
+                        <div class="metric-value">Weak</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Volatility</div>
+                        <div class="metric-value">High</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Support</div>
+                        <div class="metric-value">$169.21</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Resistance</div>
+                        <div class="metric-value">$244.98</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Current Price</div>
+                        <div class="metric-value">$172.42</div>
+                    </div>
+                </div>
+                
+                <div class="charts">
+                    <div class="chart-container">
+                        <div class="chart-title">Price with Moving Averages</div>
+                        <img src="/static/AAPL_price_plot.png" alt="AAPL Price Chart" class="chart-image">
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">RSI (Relative Strength Index)</div>
+                        <img src="/static/AAPL_rsi_plot.png" alt="AAPL RSI Chart" class="chart-image">
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">MACD (Moving Average Convergence Divergence)</div>
+                        <img src="/static/AAPL_macd_plot.png" alt="AAPL MACD Chart" class="chart-image">
+                    </div>
+                </div>
+                
+                <div class="strategy-details">
+                    <div class="details-title">Strategy Description</div>
+                    <div class="details-text">
+                        This bearish strategy for AAPL is based on a combination of trend following and momentum indicators. The 20-day SMA is below the 50-day SMA, indicating a bearish trend. The RSI shows weak momentum, and the MACD confirms the bearish momentum. The strategy recommends a SELL position with a stop loss at $177.59 and a take profit at $163.80.
+                    </div>
+                    
+                    <div class="details-title" style="margin-top: 20px;">Performance Metrics</div>
+                    <div class="metrics">
+                        <div class="metric-card">
+                            <div class="metric-title">Total Return</div>
+                            <div class="metric-value">-30.90%</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-title">Sharpe Ratio</div>
+                            <div class="metric-value">-3.37</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-title">Max Drawdown</div>
+                            <div class="metric-value">-33.36%</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-title">Win Rate</div>
+                            <div class="metric-value">100%</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-title">Volatility</div>
+                            <div class="metric-value">2.26%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="details-title" style="margin-top: 20px;">Risk Management</div>
+                    <div class="risk-management">
+                        <div class="risk-item">
+                            <div class="risk-label">Entry Price</div>
+                            <div class="risk-value">$172.42</div>
+                        </div>
+                        <div class="risk-item">
+                            <div class="risk-label">Stop Loss</div>
+                            <div class="risk-value">$177.59</div>
+                        </div>
+                        <div class="risk-item">
+                            <div class="risk-label">Take Profit</div>
+                            <div class="risk-value">$163.80</div>
+                        </div>
+                        <div class="risk-item">
+                            <div class="risk-label">Position Size</div>
+                            <div class="risk-value">5% of portfolio</div>
+                        </div>
+                        <div class="risk-item">
+                            <div class="risk-label">Risk per Trade</div>
+                            <div class="risk-value">1% of portfolio</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Gemma Advanced Trading System v2.0 | Powered by Gemma 3 Integration | © 2025</p>
+        </div>
+    </div>
+</body>
+</html>
