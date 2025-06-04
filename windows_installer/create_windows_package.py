@@ -87,7 +87,6 @@ with open(os.path.join(windows_app_dir, 'launch_gemma.bat'), 'w') as f:
 
 # Create requirements.txt for Windows
 requirements_content = '''
-yfinance
 pandas
 numpy
 matplotlib

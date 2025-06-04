@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
-import yfinance as yf
+import requests
 import requests
 from bs4 import BeautifulSoup
 import nltk

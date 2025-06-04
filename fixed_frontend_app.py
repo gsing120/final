@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
-import yfinance as yf
+import requests
 from io import BytesIO
 import base64
 import json
@@ -206,7 +206,17 @@ def run_backtest():
         logger.info(f"Running backtest for {ticker} from {start_date} to {end_date}")
         
         # Get market data
-        data = yf.download(ticker, start=start_date, end=end_date)
+        api_key = os.environ.get("FMP_API_KEY", "demo")
+        url = (
+            f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}?"
+            f"from={start_date}&to={end_date}&apikey={api_key}"
+        )
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        hist = response.json().get("historical", [])
+        data = pd.DataFrame(hist)
+        if data.empty:
+            return jsonify({'success': False, 'error': 'Failed to get market data'})
         
         if data.empty:
             return jsonify({'success': False, 'error': 'Failed to get market data'})
@@ -313,18 +323,26 @@ def add_journal_entry():
 def get_market_data(ticker, period="1y", interval="1d"):
     """Get market data for a ticker."""
     try:
-        # Get data from Yahoo Finance
-        data = yf.download(
-            tickers=ticker,
-            period=period,
-            interval=interval,
-            progress=False
+        api_key = os.environ.get("FMP_API_KEY", "demo")
+        if period.endswith("d"):
+            timeseries = int(period[:-1])
+        elif period.endswith("y"):
+            timeseries = int(period[:-1]) * 365
+        else:
+            timeseries = 365
+        url = (
+            f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}?"
+            f"apikey={api_key}&timeseries={timeseries}"
         )
-        
-        # Check if data is empty
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        hist = response.json().get("historical", [])
+        data = pd.DataFrame(hist)
         if data.empty:
             return None
-        
+        data["date"] = pd.to_datetime(data["date"])
+        data.set_index("date", inplace=True)
+        data.sort_index(inplace=True)
         return data
     
     except Exception as e:

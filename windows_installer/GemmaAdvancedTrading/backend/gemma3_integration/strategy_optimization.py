@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 from typing import Dict, List, Tuple, Any, Optional, Union, Callable
 import uuid
-import yfinance as yf
+import requests
 
 # Import Gemma 3 integration components
 from gemma3_integration.architecture_enhanced import GemmaCore, PromptEngine, ModelManager
@@ -144,7 +144,7 @@ class StrategyBacktester:
         -----------
         data_provider : Callable, optional
             Function to provide historical data for backtesting.
-            If None, uses default yfinance data provider.
+            If None, uses default FMP data provider.
         """
         self.logger = logging.getLogger("GemmaTrading.StrategyBacktester")
         self.data_provider = data_provider or self._default_data_provider
@@ -153,7 +153,7 @@ class StrategyBacktester:
     
     def _default_data_provider(self, ticker: str, period: str = "1y", interval: str = "1d") -> pd.DataFrame:
         """
-        Default data provider using yfinance.
+        Default data provider using FMP.
         
         Parameters:
         -----------

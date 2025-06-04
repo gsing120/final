@@ -77,7 +77,7 @@ class MarketDataFetcher:
         
         try:
             # For demonstration purposes, generate synthetic data
-            # In a real implementation, this would use yfinance, Alpha Vantage, or another data source
+            # In a real implementation, this would use FMP, Alpha Vantage, or another data source
             if not start_date:
                 end_date = datetime.now()
                 if period == "1y":

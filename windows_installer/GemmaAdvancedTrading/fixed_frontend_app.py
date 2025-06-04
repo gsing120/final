@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
-import yfinance as yf
+import requests
 from io import BytesIO
 import base64
 import json

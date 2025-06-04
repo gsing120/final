@@ -544,5 +544,8 @@ A: You can access support through the Help menu in the application, visit our on
 **Q: Is training available for the system?**  
 A: Yes, we offer online tutorials, webinars, and one-on-one training sessions to help you maximize the value of the system.
 
-**Q: How do I suggest new features?**  
+**Q: How do I suggest new features?**
 A: You can submit feature requests through the Help menu or on our community forums. We regularly review user suggestions for inclusion in future updates.
+
+**Q: Is the system available for traders in Cuba?**
+A: Yes. The Gemma Advanced Trading System can be used in Cuba as long as you have a stable internet connection and a supported broker integration.

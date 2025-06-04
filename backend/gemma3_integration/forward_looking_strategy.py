@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
-import yfinance as yf
+import requests
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
@@ -35,12 +35,21 @@ class ForwardLookingStrategyGenerator:
     def get_market_data(self, ticker, period="1y", interval="1d"):
         """Get historical market data for a ticker."""
         try:
-            data = yf.download(
-                tickers=ticker,
-                period=period,
-                interval=interval,
-                progress=False
+            api_key = os.environ.get("FMP_API_KEY", "demo")
+            if period.endswith("d"):
+                timeseries = int(period[:-1])
+            elif period.endswith("y"):
+                timeseries = int(period[:-1]) * 365
+            else:
+                timeseries = 365
+            url = (
+                f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}?"
+                f"apikey={api_key}&timeseries={timeseries}"
             )
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+            hist = response.json().get("historical", [])
+            data = pd.DataFrame(hist)
             
             if data.empty:
                 logger.error(f"No data found for {ticker}")
@@ -55,7 +64,7 @@ class ForwardLookingStrategyGenerator:
     def get_company_fundamentals(self, ticker):
         """Get fundamental data for a company."""
         try:
-            stock = yf.Ticker(ticker)
+            stock = None
             
             # Get key financial metrics
             info = stock.info
@@ -105,7 +114,7 @@ class ForwardLookingStrategyGenerator:
         """Get news sentiment for a ticker over the past few days."""
         try:
             # Get news from Yahoo Finance
-            stock = yf.Ticker(ticker)
+            stock = None
             news = stock.news
             
             if not news:

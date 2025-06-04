@@ -12,7 +12,7 @@ import logging
 import datetime
 import pandas as pd
 import numpy as np
-import yfinance as yf
+import requests
 from typing import Dict, List, Any, Tuple
 import random
 
@@ -286,15 +286,32 @@ class EnhancedStrategyBacktester:
         self.logger.info(f"Getting historical data for {ticker} with period {period}")
         
         try:
-            # Get data from Yahoo Finance
-            data = yf.download(ticker, period=period)
-            
+            api_key = os.environ.get("FMP_API_KEY", "demo")
+            if period.endswith("d"):
+                timeseries = int(period[:-1])
+            elif period.endswith("y"):
+                timeseries = int(period[:-1]) * 365
+            else:
+                timeseries = 365
+            url = (
+                f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}?"
+                f"apikey={api_key}&timeseries={timeseries}"
+            )
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+            hist = response.json().get("historical", [])
+            data = pd.DataFrame(hist)
+
             if len(data) == 0:
                 self.logger.error(f"No data found for {ticker}")
                 return None
-            
+
+            data["date"] = pd.to_datetime(data["date"])
+            data.set_index("date", inplace=True)
+            data.sort_index(inplace=True)
+
             self.logger.info(f"Got {len(data)} data points for {ticker}")
-            
+
             return data
         
         except Exception as e:

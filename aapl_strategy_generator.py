@@ -12,7 +12,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
-import yfinance as yf
+import requests
 from io import BytesIO
 import base64
 import matplotlib.dates as mdates
@@ -34,13 +34,24 @@ def get_market_data(ticker, period="1y", interval="1d"):
     logger.info(f"Getting market data for {ticker} with period={period}, interval={interval}")
     
     try:
-        # Get data from Yahoo Finance
-        data = yf.download(
-            tickers=ticker,
-            period=period,
-            interval=interval,
-            progress=False
+        api_key = os.environ.get("FMP_API_KEY", "demo")
+        url = (
+            f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}?"
+            f"apikey={api_key}&timeseries=500"
         )
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        json_data = response.json()
+        hist = json_data.get("historical", [])
+        if not hist:
+            logger.warning(f"No data found for {ticker}")
+            return None
+
+        df = pd.DataFrame(hist)
+        df["date"] = pd.to_datetime(df["date"])
+        df.set_index("date", inplace=True)
+        df.sort_index(inplace=True)
+        data = df[["open", "high", "low", "close", "volume"]]
         
         # Check if data is empty
         if data.empty:

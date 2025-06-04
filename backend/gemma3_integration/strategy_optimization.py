@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 from typing import Dict, List, Tuple, Any, Optional, Union, Callable
 import uuid
-import yfinance as yf
+import requests
 
 # Import Gemma 3 integration components
 from gemma3_integration.architecture_enhanced import GemmaCore, PromptEngine, ModelManager
@@ -144,7 +144,7 @@ class StrategyBacktester:
         -----------
         data_provider : Callable, optional
             Function to provide historical data for backtesting.
-            If None, uses default yfinance data provider.
+            If None, uses default FMP data provider.
         """
         self.logger = logging.getLogger("GemmaTrading.StrategyBacktester")
         self.data_provider = data_provider or self._default_data_provider
@@ -153,7 +153,7 @@ class StrategyBacktester:
     
     def _default_data_provider(self, ticker: str, period: str = "1y", interval: str = "1d") -> pd.DataFrame:
         """
-        Default data provider using yfinance.
+        Default data provider using FMP.
         
         Parameters:
         -----------
@@ -172,17 +172,30 @@ class StrategyBacktester:
         self.logger.info(f"Getting data for {ticker} with period={period}, interval={interval}")
         
         try:
-            data = yf.download(
-                tickers=ticker,
-                period=period,
-                interval=interval,
-                progress=False
+            api_key = os.environ.get("FMP_API_KEY", "demo")
+            if period.endswith("d"):
+                timeseries = int(period[:-1])
+            elif period.endswith("y"):
+                timeseries = int(period[:-1]) * 365
+            else:
+                timeseries = 365
+            url = (
+                f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}?"
+                f"apikey={api_key}&timeseries={timeseries}"
             )
-            
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+            hist = response.json().get("historical", [])
+            data = pd.DataFrame(hist)
+
             if data.empty:
                 self.logger.warning(f"No data found for {ticker}")
                 return None
-            
+
+            data["date"] = pd.to_datetime(data["date"])
+            data.set_index("date", inplace=True)
+            data.sort_index(inplace=True)
+
             self.logger.info(f"Got {len(data)} rows of data for {ticker}")
             return data
         
