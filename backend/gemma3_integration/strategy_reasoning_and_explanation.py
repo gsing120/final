@@ -892,3 +892,7 @@ class StrategyReasoningAndExplanation:
             ticker, signal_type, entry_price, current_price, holding_period,
             technical_indicators, market_conditions, strategy, news_sentiment
         )
+
+# Alias for backward compatibility
+StrategyReasoningEngine = StrategyReasoningAndExplanation
+

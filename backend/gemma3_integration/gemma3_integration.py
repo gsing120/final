@@ -13,7 +13,9 @@ from typing import Dict, List, Tuple, Any, Optional, Union, Callable
 
 # Import all Gemma 3 integration components
 from backend.gemma3_integration.architecture_enhanced import GemmaCore, PromptEngine, ModelManager, ChainOfThoughtProcessor
-from backend.gemma3_integration.natural_language_market_analysis_enhanced import NaturalLanguageMarketAnalysis
+from backend.gemma3_integration.natural_language_market_analysis_enhanced import (
+    NaturalLanguageMarketAnalyzer as NaturalLanguageMarketAnalysis,
+)
 from backend.gemma3_integration.advanced_mathematical_modeling_enhanced import AdvancedMathematicalModeling
 from backend.gemma3_integration.strategy_reasoning_and_explanation import StrategyReasoningAndExplanation
 from backend.gemma3_integration.adaptive_learning import AdaptiveLearning
