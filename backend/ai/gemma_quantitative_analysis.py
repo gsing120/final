@@ -527,12 +527,10 @@ class GemmaQuantitativeAnalyzer:
         """
         
         prompt = self._format_prompt(
-            prompt_template, 
+            prompt_template,
             assets=", ".join(returns_df.columns),
             weights_summary=weights_summary,
-            return=optimal_return,
-            std_dev=optimal_std_dev,
-            sharpe=optimal_sharpe
+            **{"return": optimal_return, "std_dev": optimal_std_dev, "sharpe": optimal_sharpe}
         )
         
         # Call Gemma 3 model
@@ -1040,3 +1038,65 @@ class GemmaQuantitativeAnalyzer:
         }
         
         return results
+
+# Alias for backward compatibility
+class GemmaQuantitativeAnalysis(GemmaQuantitativeAnalyzer):
+    """Backward-compatible wrapper for tests."""
+
+    def __init__(self, *args, model=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if model is not None:
+            self.model = model
+        # Provide minimal analyzer attributes expected by tests
+        self.market_regime_analyzer = MarketRegimeAnalysis()
+        self.correlation_analyzer = CorrelationAnalysis()
+        self.factor_analyzer = FactorAnalysis()
+
+
+class MarketRegimeAnalysis:
+    """Compute simple trend-based market regime."""
+
+    def analyze(self, price_series: pd.Series):
+        returns = price_series.pct_change().dropna()
+        momentum = returns.rolling(window=20).mean().iloc[-1]
+        if momentum > 0.001:
+            regime = "bullish"
+        elif momentum < -0.001:
+            regime = "bearish"
+        else:
+            regime = "sideways"
+        return {"regime": regime, "momentum": float(momentum)}
+
+
+class CorrelationAnalysis:
+    """Provide a correlation matrix for given data."""
+
+    def compute(self, price_data: dict):
+        closes = []
+        names = []
+        for symbol, df in price_data.items():
+            if "close" in df.columns:
+                closes.append(df["close"])
+                names.append(symbol)
+        if not closes:
+            return pd.DataFrame()
+        df = pd.concat(closes, axis=1)
+        df.columns = names
+        return df.pct_change().corr()
+
+
+class FactorAnalysis:
+    """Dummy factor analysis using rolling returns."""
+
+    FACTORS = ["momentum", "volatility"]
+
+    def analyze(self, price_data: dict):
+        exposures = {}
+        for symbol, df in price_data.items():
+            ret = df["close"].pct_change().dropna()
+            exposures[symbol] = {
+                "momentum": float(ret.mean()),
+                "volatility": float(ret.std()),
+            }
+        return exposures
+

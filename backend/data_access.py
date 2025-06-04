@@ -5,6 +5,7 @@ import logging
 import os
 import traceback
 from datetime import datetime, timedelta
+from functools import lru_cache
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -14,9 +15,12 @@ class FMPClient:
     """Client for accessing Financial Modeling Prep data."""
     
     def __init__(self, api_key=None):
-        """Initialize the FMP client."""
+        """Initialize the FMP client and create a reusable request session."""
         self.api_key = api_key or os.environ.get("FMP_API_KEY", "demo")
+        # Reuse a session for better performance
+        self._session = requests.Session()
         logger.info("FMPClient initialized")
+
 
     def _generate_sample_data(self, days=30):
         """Generate random sample OHLCV data for offline use."""
@@ -32,6 +36,7 @@ class FMPClient:
         data["log_returns"] = np.log(data["close"] / data["close"].shift(1))
         return data
         
+    @lru_cache(maxsize=128)
     def get_market_data(self, ticker, interval='1d', period=None, start_date=None, end_date=None):
         """
         Get market data for a specific ticker.
@@ -56,7 +61,8 @@ class FMPClient:
         """
         try:
             logger.info(f"Getting market data for {ticker} with interval={interval}")
-            
+
+
             # Build FMP URL
             api_key = self.api_key
             days = 365
@@ -95,7 +101,7 @@ class FMPClient:
                 )
                 days = 365
 
-            response = requests.get(url, timeout=10)
+            response = self._session.get(url, timeout=10)
             response.raise_for_status()
             hist = response.json().get("historical", [])
             data = pd.DataFrame(hist)
@@ -156,6 +162,7 @@ class FMPClient:
             logger.info("Falling back to generated sample data")
             return self._generate_sample_data(days)
     
+    @lru_cache(maxsize=128)
     def get_ticker_info(self, ticker):
         """
         Get information about a ticker.
@@ -172,16 +179,20 @@ class FMPClient:
         """
         try:
             logger.info(f"Getting ticker info for {ticker}")
+
+
             api_key = self.api_key
             url = f"https://financialmodelingprep.com/api/v3/profile/{ticker}?apikey={api_key}"
-            response = requests.get(url, timeout=10)
+            response = self._session.get(url, timeout=10)
             response.raise_for_status()
             info = response.json()
-            return info[0] if info else None
+            result = info[0] if info else None
+            return result
         except Exception as e:
             logger.error(f"Error getting ticker info for {ticker}: {str(e)}")
             return None
     
+    @lru_cache(maxsize=128)
     def get_historical_dividends(self, ticker, period='5y'):
         """
         Get historical dividends for a ticker.
@@ -200,12 +211,14 @@ class FMPClient:
         """
         try:
             logger.info(f"Getting historical dividends for {ticker} with period={period}")
+
+
             api_key = self.api_key
             url = (
                 f"https://financialmodelingprep.com/api/v3/historical-price-full/stock_dividend/{ticker}?"
                 f"apikey={api_key}"
             )
-            response = requests.get(url, timeout=10)
+            response = self._session.get(url, timeout=10)
             response.raise_for_status()
             hist = response.json().get("historical", [])
             df = pd.DataFrame(hist)
@@ -229,11 +242,13 @@ class FMPClient:
                 if period in period_map:
                     start_date = datetime.now() - period_map[period]
                     df = df[df.index >= start_date]
-            return df['dividend']
+            result = df['dividend']
+            return result
         except Exception as e:
             logger.error(f"Error getting historical dividends for {ticker}: {str(e)}")
             return None
     
+    @lru_cache(maxsize=128)
     def get_historical_splits(self, ticker, period='5y'):
         """
         Get historical stock splits for a ticker.
@@ -252,12 +267,14 @@ class FMPClient:
         """
         try:
             logger.info(f"Getting historical splits for {ticker} with period={period}")
+
+
             api_key = self.api_key
             url = (
                 f"https://financialmodelingprep.com/api/v3/historical-price-full/stock_split/{ticker}?"
                 f"apikey={api_key}"
             )
-            response = requests.get(url, timeout=10)
+            response = self._session.get(url, timeout=10)
             response.raise_for_status()
             hist = response.json().get("historical", [])
             df = pd.DataFrame(hist)
@@ -281,7 +298,8 @@ class FMPClient:
                 if period in period_map:
                     start_date = datetime.now() - period_map[period]
                     df = df[df.index >= start_date]
-            return df['split']
+            result = df['split']
+            return result
         except Exception as e:
             logger.error(f"Error getting historical splits for {ticker}: {str(e)}")
             return None
@@ -304,7 +322,7 @@ class FMPClient:
             logger.info(f"Getting options chain for {ticker}")
             api_key = self.api_key
             url = f"https://financialmodelingprep.com/api/v3/options-chain/{ticker}?apikey={api_key}"
-            response = requests.get(url, timeout=10)
+            response = self._session.get(url, timeout=10)
             response.raise_for_status()
             chain = response.json()
             calls = pd.DataFrame(chain.get('calls', []))

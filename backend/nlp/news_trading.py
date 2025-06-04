@@ -1427,3 +1427,51 @@ class NewsTrading:
             "avg_loss": avg_loss,
             "num_trades": num_trades
         }
+
+# Alias for backward compatibility
+class NewsAnalyzer(NewsTrading):
+    """Backward-compatible wrapper for tests."""
+
+    def __init__(self, *args, model=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if model is not None:
+            self.model = model
+        # Override NLP components with simple wrappers for tests
+        self.sentiment_analyzer = SentimentAnalysis()
+        self.entity_extractor = EntityExtraction()
+        self.impact_predictor = NewsImpactPredictor()
+
+
+class SentimentAnalysis:
+    """Tiny wrapper around VADER for unit tests."""
+
+    def __init__(self):
+        nltk.download("vader_lexicon", quiet=True)
+        from nltk.sentiment.vader import SentimentIntensityAnalyzer
+
+        self.analyzer = SentimentIntensityAnalyzer()
+
+    def analyze(self, text):
+        return self.analyzer.polarity_scores(text)
+
+
+class EntityExtraction:
+    """Extract tickers and simple named entities using regex."""
+
+    TICKER_RE = re.compile(r"\b[A-Z]{1,5}\b")
+
+    def extract(self, text):
+        tickers = self.TICKER_RE.findall(text.upper())
+        return {"tickers": list(set(tickers))}
+
+
+class NewsImpactPredictor:
+    """Predict price impact from sentiment score."""
+
+    def predict(self, sentiment_score):
+        # Map sentiment score (-1..1) to expected percent move
+        return {
+            "price_impact": float(sentiment_score) * 0.05,
+            "confidence": abs(float(sentiment_score)),
+        }
+

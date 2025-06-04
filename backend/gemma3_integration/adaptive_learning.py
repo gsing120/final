@@ -1559,3 +1559,7 @@ class AdaptiveLearning:
         
         self.logger.info(f"Generated learning report for period {period}")
         return report
+
+# Alias for backward compatibility
+AdaptiveLearningSystem = AdaptiveLearning
+

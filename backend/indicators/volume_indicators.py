@@ -483,6 +483,18 @@ def positive_volume_index(close, volume):
     """
     return _volume_indicators.positive_volume_index(close, volume)
 
+
+def volume_sma(volume, period):
+    """Simple moving average of volume."""
+    return volume.rolling(window=period).mean()
+
+
+def money_flow_index(high, low, close, volume, period=14):
+    """Wrapper for Money Flow Index using momentum indicator implementation."""
+    from .momentum_indicators import money_flow_index as _mfi
+
+    return _mfi(high, low, close, volume, period)
+
 def volume_oscillator(volume, fast_period=5, slow_period=10):
     """
     Calculate Volume Oscillator.
