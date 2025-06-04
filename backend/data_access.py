@@ -5,6 +5,7 @@ import logging
 import os
 import traceback
 from datetime import datetime, timedelta
+from functools import lru_cache
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -14,9 +15,19 @@ class FMPClient:
     """Client for accessing Financial Modeling Prep data."""
     
     def __init__(self, api_key=None):
-        """Initialize the FMP client."""
+        """Initialize the FMP client and setup a simple request cache."""
         self.api_key = api_key or os.environ.get("FMP_API_KEY", "demo")
+        # Simple in-memory cache to avoid repeated network calls
+        self._cache = {}
         logger.info("FMPClient initialized")
+
+    def _cache_get(self, key):
+        """Retrieve a value from the internal cache if present."""
+        return self._cache.get(key)
+
+    def _cache_set(self, key, value):
+        """Store a value in the internal cache."""
+        self._cache[key] = value
 
     def _generate_sample_data(self, days=30):
         """Generate random sample OHLCV data for offline use."""
@@ -56,7 +67,12 @@ class FMPClient:
         """
         try:
             logger.info(f"Getting market data for {ticker} with interval={interval}")
-            
+
+            cache_key = f"market:{ticker}:{interval}:{period}:{start_date}:{end_date}"
+            cached = self._cache_get(cache_key)
+            if cached is not None:
+                return cached
+
             # Build FMP URL
             api_key = self.api_key
             days = 365
@@ -148,6 +164,7 @@ class FMPClient:
             data['returns'] = data['close'].pct_change()
             data['log_returns'] = np.log(data['close'] / data['close'].shift(1))
 
+            self._cache_set(cache_key, data)
             return data
 
         except Exception as e:
@@ -172,12 +189,20 @@ class FMPClient:
         """
         try:
             logger.info(f"Getting ticker info for {ticker}")
+
+            cache_key = f"info:{ticker}"
+            cached = self._cache_get(cache_key)
+            if cached is not None:
+                return cached
+
             api_key = self.api_key
             url = f"https://financialmodelingprep.com/api/v3/profile/{ticker}?apikey={api_key}"
             response = requests.get(url, timeout=10)
             response.raise_for_status()
             info = response.json()
-            return info[0] if info else None
+            result = info[0] if info else None
+            self._cache_set(cache_key, result)
+            return result
         except Exception as e:
             logger.error(f"Error getting ticker info for {ticker}: {str(e)}")
             return None
@@ -200,6 +225,12 @@ class FMPClient:
         """
         try:
             logger.info(f"Getting historical dividends for {ticker} with period={period}")
+
+            cache_key = f"dividends:{ticker}:{period}"
+            cached = self._cache_get(cache_key)
+            if cached is not None:
+                return cached
+
             api_key = self.api_key
             url = (
                 f"https://financialmodelingprep.com/api/v3/historical-price-full/stock_dividend/{ticker}?"
@@ -229,7 +260,9 @@ class FMPClient:
                 if period in period_map:
                     start_date = datetime.now() - period_map[period]
                     df = df[df.index >= start_date]
-            return df['dividend']
+            result = df['dividend']
+            self._cache_set(cache_key, result)
+            return result
         except Exception as e:
             logger.error(f"Error getting historical dividends for {ticker}: {str(e)}")
             return None
@@ -252,6 +285,12 @@ class FMPClient:
         """
         try:
             logger.info(f"Getting historical splits for {ticker} with period={period}")
+
+            cache_key = f"splits:{ticker}:{period}"
+            cached = self._cache_get(cache_key)
+            if cached is not None:
+                return cached
+
             api_key = self.api_key
             url = (
                 f"https://financialmodelingprep.com/api/v3/historical-price-full/stock_split/{ticker}?"
@@ -281,7 +320,9 @@ class FMPClient:
                 if period in period_map:
                     start_date = datetime.now() - period_map[period]
                     df = df[df.index >= start_date]
-            return df['split']
+            result = df['split']
+            self._cache_set(cache_key, result)
+            return result
         except Exception as e:
             logger.error(f"Error getting historical splits for {ticker}: {str(e)}")
             return None

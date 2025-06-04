@@ -247,6 +247,71 @@ class BacktestWorker:
         }
 
 
+class TaskManager:
+    """Simple manager for keeping track of backtest tasks."""
+
+    def __init__(self):
+        self.tasks = {}
+        self.pending_tasks = []
+        self.completed_tasks = []
+        self.failed_tasks = []
+
+    def add_task(self, task: BacktestTask):
+        self.tasks[task.task_id] = task
+        self.pending_tasks.append(task)
+
+    def update_task(self, task: BacktestTask):
+        if task.status == "completed" and task not in self.completed_tasks:
+            self.completed_tasks.append(task)
+            if task in self.pending_tasks:
+                self.pending_tasks.remove(task)
+        elif task.status == "failed" and task not in self.failed_tasks:
+            self.failed_tasks.append(task)
+            if task in self.pending_tasks:
+                self.pending_tasks.remove(task)
+
+    def get_next_task(self):
+        return self.pending_tasks.pop(0) if self.pending_tasks else None
+
+    def get_task(self, task_id):
+        return self.tasks.get(task_id)
+
+
+class ParameterOptimizer:
+    """Utility for generating parameter combinations and selecting the best."""
+
+    def generate_tasks(self, strategy, data, param_grid, start_date=None, end_date=None, initial_capital=10000.0):
+        keys = list(param_grid.keys())
+        values = [param_grid[k] for k in keys]
+        tasks = []
+        for combo in itertools.product(*values):
+            params = dict(zip(keys, combo))
+            task = BacktestTask(
+                strategy=strategy,
+                data=data,
+                parameters=params,
+                start_date=start_date,
+                end_date=end_date,
+            )
+            task.initial_capital = initial_capital
+            tasks.append(task)
+        return tasks
+
+    def find_best_parameters(self, tasks, metric="total_return"):
+        best = None
+        best_val = float("-inf")
+        for task in tasks:
+            if not task.result:
+                continue
+            val = task.result.get(metric, 0)
+            if val > best_val:
+                best_val = val
+                best = task
+        if best is None:
+            return {}
+        return {"parameters": best.parameters, "performance": best.result}
+
+
 class BacktestCoordinator:
     """Class for coordinating distributed backtest tasks."""
     
@@ -366,8 +431,10 @@ class BacktestCoordinator:
         """Process completed tasks."""
         # Implementation depends on the distributed mode
         if self.config["distributed_mode"] == "local":
-            # For local mode, workers update the results directly
-            pass
+            for task_id, task in list(self.results.items()):
+                if task.status in ["completed", "failed"] and not getattr(task, "saved", False):
+                    self._save_result(task)
+                    task.saved = True
         else:
             # For network or cluster mode, we would need to check for results
             # from remote workers
@@ -1635,3 +1702,14 @@ class DistributedBacktesting:
         }
         
         return results
+
+# Alias for backward compatibility
+class DistributedBacktester(DistributedBacktesting):
+    """Wrapper that accepts num_workers parameter as expected by tests."""
+
+    def __init__(self, num_workers=1, *args, config=None, **kwargs):
+        super().__init__(config=config)
+        self.num_workers = num_workers
+        self.task_manager = TaskManager()
+        self.workers = [BacktestWorker(f"worker_{i+1}") for i in range(num_workers)]
+
