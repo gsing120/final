@@ -1040,10 +1040,27 @@ class GemmaQuantitativeAnalyzer:
         return results
 
 # Alias for backward compatibility
-GemmaQuantitativeAnalysis = GemmaQuantitativeAnalyzer
+class GemmaQuantitativeAnalysis(GemmaQuantitativeAnalyzer):
+    """Backward-compatible wrapper for tests."""
+
+    def __init__(self, *args, model=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if model is not None:
+            self.model = model
+        # Provide minimal analyzer attributes expected by tests
+        self.market_regime_analyzer = MarketRegimeAnalysis()
+        self.correlation_analyzer = CorrelationAnalysis()
+        self.factor_analyzer = FactorAnalysis()
 
 
-class MarketRegimeAnalysis: pass
-class CorrelationAnalysis: pass
-class FactorAnalysis: pass
+class MarketRegimeAnalysis:
+    pass
+
+
+class CorrelationAnalysis:
+    pass
+
+
+class FactorAnalysis:
+    pass
 

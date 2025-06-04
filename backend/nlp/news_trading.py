@@ -1430,7 +1430,12 @@ class NewsTrading:
 
 # Alias for backward compatibility
 class NewsAnalyzer(NewsTrading):
-    pass
+    """Backward-compatible wrapper for tests."""
+
+    def __init__(self, *args, model=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if model is not None:
+            self.model = model
 
 
 class SentimentAnalysis:

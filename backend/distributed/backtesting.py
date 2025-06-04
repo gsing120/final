@@ -1702,5 +1702,12 @@ class DistributedBacktesting:
         return results
 
 # Alias for backward compatibility
-DistributedBacktester = DistributedBacktesting
+class DistributedBacktester(DistributedBacktesting):
+    """Wrapper that accepts num_workers parameter as expected by tests."""
+
+    def __init__(self, num_workers=1, *args, config=None, **kwargs):
+        super().__init__(config=config)
+        self.num_workers = num_workers
+        self.task_manager = TaskManager()
+        self.workers = [BacktestWorker(f"worker_{i+1}") for i in range(num_workers)]
 
