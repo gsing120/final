@@ -7,6 +7,28 @@ This module provides the foundation for risk management functionality.
 import numpy as np
 import pandas as pd
 from datetime import datetime
+from dataclasses import dataclass
+
+
+@dataclass
+class Position:
+    """Simple representation of an open position."""
+
+    symbol: str
+    quantity: float
+    entry_price: float
+    stop_loss: float | None = None
+
+
+@dataclass
+class Portfolio:
+    """Simple portfolio holding multiple positions."""
+
+    positions: dict = None
+
+    def __post_init__(self):
+        if self.positions is None:
+            self.positions = {}
 
 
 class RiskManager:

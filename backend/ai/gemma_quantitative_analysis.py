@@ -527,12 +527,10 @@ class GemmaQuantitativeAnalyzer:
         """
         
         prompt = self._format_prompt(
-            prompt_template, 
+            prompt_template,
             assets=", ".join(returns_df.columns),
             weights_summary=weights_summary,
-            return=optimal_return,
-            std_dev=optimal_std_dev,
-            sharpe=optimal_sharpe
+            **{"return": optimal_return, "std_dev": optimal_std_dev, "sharpe": optimal_sharpe}
         )
         
         # Call Gemma 3 model
@@ -1040,3 +1038,12 @@ class GemmaQuantitativeAnalyzer:
         }
         
         return results
+
+# Alias for backward compatibility
+GemmaQuantitativeAnalysis = GemmaQuantitativeAnalyzer
+
+
+class MarketRegimeAnalysis: pass
+class CorrelationAnalysis: pass
+class FactorAnalysis: pass
+

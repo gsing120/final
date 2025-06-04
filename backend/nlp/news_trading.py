@@ -1427,3 +1427,20 @@ class NewsTrading:
             "avg_loss": avg_loss,
             "num_trades": num_trades
         }
+
+# Alias for backward compatibility
+class NewsAnalyzer(NewsTrading):
+    pass
+
+
+class SentimentAnalysis:
+    pass
+
+
+class EntityExtraction:
+    pass
+
+
+class NewsImpactPredictor:
+    pass
+

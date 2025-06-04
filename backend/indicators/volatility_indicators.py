@@ -292,6 +292,11 @@ def keltner_channel(high, low, close, ema_period=20, atr_period=10, multiplier=2
     """
     return _volatility_indicators.keltner_channel(high, low, close, ema_period, atr_period, multiplier)
 
+
+def keltner_channels(high, low, close, ema_period=20, atr_period=10, atr_multiplier=2):
+    """Alias returning upper, middle and lower bands."""
+    return keltner_channel(high, low, close, ema_period, atr_period, atr_multiplier)
+
 def historical_volatility(data, period=20, trading_periods=252):
     """
     Calculate Historical Volatility.
@@ -373,3 +378,12 @@ def chaikin_volatility(high, low, ema_period=10, roc_period=10):
         Chaikin Volatility values
     """
     return _volatility_indicators.chaikin_volatility(high, low, ema_period, roc_period)
+
+
+def bollinger_bandwidth(close, period=20, std_dev=2.0):
+    """Calculate Bollinger Bandwidth."""
+    from .trend_indicators import bollinger_bands
+
+    upper, middle, lower = bollinger_bands(close, period, std_dev)
+    bandwidth = ((upper - lower) / middle) * 100
+    return bandwidth

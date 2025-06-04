@@ -889,3 +889,7 @@ class NaturalLanguageMarketAnalyzer:
             }
         
         return analysis
+
+# Alias for backward compatibility
+NaturalLanguageMarketAnalysis = NaturalLanguageMarketAnalyzer
+
