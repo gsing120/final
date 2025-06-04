@@ -20,7 +20,7 @@ from flask import Flask, render_template, request, jsonify, send_from_directory
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import yfinance as yf
+import requests
 import logging
 
 # Configure logging
@@ -540,12 +540,21 @@ def generate_strategy():
             return jsonify({'error': 'Ticker symbol is required'}), 400
         
         # Get market data
-        data = yf.download(
-            tickers=ticker,
-            period=period,
-            interval=interval,
-            progress=False
+        api_key = os.environ.get("FMP_API_KEY", "demo")
+        if period.endswith("d"):
+            timeseries = int(period[:-1])
+        elif period.endswith("y"):
+            timeseries = int(period[:-1]) * 365
+        else:
+            timeseries = 365
+        url = (
+            f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}?"
+            f"apikey={api_key}&timeseries={timeseries}"
         )
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        hist = response.json().get("historical", [])
+        data = pd.DataFrame(hist)
         
         # Check if data is empty
         if data.empty:

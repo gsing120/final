@@ -12,7 +12,7 @@ import logging
 import datetime
 import pandas as pd
 import numpy as np
-import yfinance as yf
+import requests
 import matplotlib.pyplot as plt
 from typing import Dict, List, Any, Tuple
 import random

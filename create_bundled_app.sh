@@ -11,7 +11,7 @@ source bundled_app/gemma_venv/bin/activate
 # Install required packages
 echo "Installing required packages..."
 pip install pyinstaller
-pip install yfinance pandas numpy matplotlib flask flask-cors scikit-learn
+pip install pandas numpy matplotlib flask flask-cors scikit-learn requests
 
 # Copy necessary files to bundled_app directory
 echo "Copying application files..."
@@ -37,7 +37,6 @@ pyinstaller --name=GemmaAdvancedTrading \
   --hidden-import=pandas \
   --hidden-import=numpy \
   --hidden-import=matplotlib \
-  --hidden-import=yfinance \
   --hidden-import=flask \
   --hidden-import=flask_cors \
   --hidden-import=scikit-learn \

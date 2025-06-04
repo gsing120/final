@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-We have successfully fixed the critical issue in the Gemma Advanced Trading System where it was recommending strategies with negative historical performance. The system now properly optimizes trading strategies to ensure only those with positive historical performance are presented to users.
+We have successfully fixed the critical issue in the Gemma Advanced Trading System where it was recommending strategies with negative historical performance. The system now properly optimizes trading strategies to ensure only those with positive historical performance are presented to users. Traders from many regions, including Cuba, can benefit from these improvements.
 
 The improvements have been thoroughly tested with real AAPL data, resulting in an optimized strategy that achieves:
 - **43.94% total return** (compared to -30.9% in the original system)

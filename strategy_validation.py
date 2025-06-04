@@ -12,7 +12,7 @@ import logging
 import datetime
 import pandas as pd
 import numpy as np
-import yfinance as yf
+import requests
 import matplotlib.pyplot as plt
 from typing import Dict, List, Any, Tuple
 import random
@@ -433,8 +433,29 @@ class StrategyValidator:
         self.logger.info(f"Getting historical data for {ticker} with period {period}")
         
         try:
-            # Get data from Yahoo Finance
-            data = yf.download(ticker, period=period)
+            # Get data from Financial Modeling Prep
+            api_key = os.environ.get("FMP_API_KEY", "demo")
+            if period.endswith("d"):
+                timeseries = int(period[:-1])
+            elif period.endswith("y"):
+                timeseries = int(period[:-1]) * 365
+            else:
+                timeseries = 365
+            url = (
+                f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}?"
+                f"apikey={api_key}&timeseries={timeseries}"
+            )
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+            hist = response.json().get("historical", [])
+            if not hist:
+                self.logger.error(f"No data found for {ticker}")
+                return None
+
+            data = pd.DataFrame(hist)
+            data["date"] = pd.to_datetime(data["date"])
+            data.set_index("date", inplace=True)
+            data.sort_index(inplace=True)
             
             if len(data) == 0:
                 self.logger.error(f"No data found for {ticker}")
@@ -469,8 +490,23 @@ class StrategyValidator:
         self.logger.info(f"Getting historical data for {ticker} from {start_date} to {end_date}")
         
         try:
-            # Get data from Yahoo Finance
-            data = yf.download(ticker, start=start_date, end=end_date)
+            # Get data from Financial Modeling Prep
+            api_key = os.environ.get("FMP_API_KEY", "demo")
+            url = (
+                f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}?"
+                f"from={start_date}&to={end_date}&apikey={api_key}"
+            )
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+            hist = response.json().get("historical", [])
+            if not hist:
+                self.logger.error(f"No data found for {ticker}")
+                return None
+
+            data = pd.DataFrame(hist)
+            data["date"] = pd.to_datetime(data["date"])
+            data.set_index("date", inplace=True)
+            data.sort_index(inplace=True)
             
             if len(data) == 0:
                 self.logger.error(f"No data found for {ticker}")

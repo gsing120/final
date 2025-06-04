@@ -12,7 +12,7 @@ import logging
 import datetime
 import pandas as pd
 import numpy as np
-import yfinance as yf
+import requests
 from typing import Dict, List, Any, Tuple
 import random
 
@@ -197,8 +197,23 @@ class StrategyBacktester:
         self.logger.info(f"Getting historical data for {ticker}")
         
         try:
-            # Get data from Yahoo Finance
-            data = yf.download(ticker, period="1y")
+            # Get data from Financial Modeling Prep
+            api_key = os.environ.get("FMP_API_KEY", "demo")
+            url = (
+                f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}?"
+                f"apikey={api_key}&timeseries=365"
+            )
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+            hist = response.json().get("historical", [])
+            if not hist:
+                self.logger.error(f"No data found for {ticker}")
+                return None
+
+            data = pd.DataFrame(hist)
+            data["date"] = pd.to_datetime(data["date"])
+            data.set_index("date", inplace=True)
+            data.sort_index(inplace=True)
             
             if len(data) == 0:
                 self.logger.error(f"No data found for {ticker}")

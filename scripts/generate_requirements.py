@@ -45,8 +45,7 @@ REQUIREMENTS = {
     "pyyaml": ">=6.0",
     
     # Financial libraries
-    "ta-lib": ">=0.4.0",
-    "yfinance": ">=0.1.70",
+    "pandas-ta": ">=0.3.14b0",
     "alpaca-trade-api": ">=2.0.0",
 }
 
