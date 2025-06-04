@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Simple Dashboard</h1>
+        <p><strong>Portfolio Value:</strong> ${{ "%.2f"|format(portfolio.value) }}</p>
+        <p><strong>Performance:</strong> {{ "%.2f"|format(portfolio.performance) }}%</p>
+        <p><strong>Cash:</strong> ${{ "%.2f"|format(portfolio.cash) }}</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Ticker</th>
+                    <th>Shares</th>
+                    <th>Entry Price</th>
+                    <th>Current Price</th>
+                    <th>Value</th>
+                    <th>P/L</th>
+                    <th>P/L %</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for position in portfolio.positions %}
+                <tr>
+                    <td>{{ position.ticker }}</td>
+                    <td>{{ position.shares }}</td>
+                    <td>${{ "%.2f"|format(position.entry_price) }}</td>
+                    <td>${{ "%.2f"|format(position.current_price) }}</td>
+                    <td>${{ "%.2f"|format(position.value) }}</td>
+                    <td>${{ "%.2f"|format(position.profit) }}</td>
+                    <td>{{ "%.2f"|format(position.profit_percent) }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
