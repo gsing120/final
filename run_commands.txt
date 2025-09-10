@@ -1,0 +1,12 @@
+# Commands to set up and run the simple dashboard
+python3 -m venv venv
+source venv/bin/activate
+# (Optional) Set your FMP API key if you have one
+export FMP_API_KEY=<YOUR_FMP_API_KEY>
+# Install project requirements
+pip install -r requirements_essential.txt
+pip install flask
+# Run the unit tests
+pytest -q
+# Start the dashboard
+python simple_dashboard.py

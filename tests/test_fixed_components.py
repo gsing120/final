@@ -11,7 +11,7 @@ import shutil
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Import components to test
-from backend.data_access import YahooFinanceClient
+from backend.data_access import FMPClient
 from backend.risk_management.core import RiskManager
 from backend.continuous_research import ContinuousResearchEngine
 from backend.error_handling import ErrorHandler, error_handler
@@ -68,7 +68,7 @@ class TestFixedComponents(unittest.TestCase):
         self.test_dir = tempfile.mkdtemp()
         
         # Initialize components for testing
-        self.yahoo_client = YahooFinanceClient()
+        self.market_client = FMPClient()
         self.risk_manager = RiskManager(portfolio_value=100000)  # Use portfolio_value instead of account_balance
         self.research_engine = ContinuousResearchEngine(data_dir=self.test_dir)
         self.backtest_optimizer = BacktestOptimizer(data_dir=self.test_dir)
@@ -84,15 +84,15 @@ class TestFixedComponents(unittest.TestCase):
         if hasattr(self.research_engine, 'active') and self.research_engine.active:
             self.research_engine.stop()
     
-    def test_yahoo_finance_client_period_parameter(self):
-        """Test that YahooFinanceClient correctly handles the period parameter."""
+    def test_fmp_client_period_parameter(self):
+        """Test that FMPClient correctly handles the period parameter."""
         # Test with period parameter
-        data = self.yahoo_client.get_market_data('AAPL', period='1mo')
+        data = self.market_client.get_market_data('AAPL', period='1mo')
         self.assertIsNotNone(data)
         self.assertFalse(data.empty)
         
         # Test with different period parameter
-        data2 = self.yahoo_client.get_market_data('AAPL', period='3mo')
+        data2 = self.market_client.get_market_data('AAPL', period='3mo')
         self.assertIsNotNone(data2)
         self.assertFalse(data2.empty)
         

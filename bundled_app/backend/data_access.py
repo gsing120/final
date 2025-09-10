@@ -9,7 +9,7 @@ import logging
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-import yfinance as yf
+import requests
 
 # Configure logging
 logging.basicConfig(

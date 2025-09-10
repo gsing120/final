@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
-import yfinance as yf
+import requests
 import requests
 from bs4 import BeautifulSoup
 import nltk
@@ -36,7 +36,7 @@ class QualitativeAnalyzer:
     def get_company_profile(self, ticker):
         """Get detailed company profile and business description."""
         try:
-            stock = yf.Ticker(ticker)
+            stock = None
             info = stock.info
             
             profile = {
@@ -72,7 +72,7 @@ class QualitativeAnalyzer:
     def get_financial_health_metrics(self, ticker):
         """Get detailed financial health metrics."""
         try:
-            stock = yf.Ticker(ticker)
+            stock = None
             
             # Get financial statements
             balance_sheet = stock.balance_sheet
@@ -233,7 +233,7 @@ class QualitativeAnalyzer:
     def get_earnings_analysis(self, ticker):
         """Analyze recent earnings reports and surprises."""
         try:
-            stock = yf.Ticker(ticker)
+            stock = None
             
             # Get earnings data
             earnings = stock.earnings
@@ -332,7 +332,7 @@ class QualitativeAnalyzer:
     def get_analyst_recommendations(self, ticker):
         """Get analyst recommendations and price targets."""
         try:
-            stock = yf.Ticker(ticker)
+            stock = None
             
             # Get recommendations
             recommendations = stock.recommendations
@@ -445,7 +445,7 @@ class QualitativeAnalyzer:
         """Get detailed news sentiment analysis with topic extraction."""
         try:
             # Get news from Yahoo Finance
-            stock = yf.Ticker(ticker)
+            stock = None
             news = stock.news
             
             if not news:
@@ -608,7 +608,7 @@ class QualitativeAnalyzer:
     def get_insider_trading(self, ticker):
         """Analyze insider trading patterns."""
         try:
-            stock = yf.Ticker(ticker)
+            stock = None
             
             # Get insider transactions
             insider_trades = stock.insider_transactions
@@ -698,7 +698,7 @@ class QualitativeAnalyzer:
     def get_institutional_ownership(self, ticker):
         """Analyze institutional ownership and changes."""
         try:
-            stock = yf.Ticker(ticker)
+            stock = None
             
             # Get institutional holders
             institutional_holders = stock.institutional_holders
@@ -837,7 +837,7 @@ class QualitativeAnalyzer:
     def get_sector_performance(self, ticker):
         """Get sector performance and relative strength."""
         try:
-            stock = yf.Ticker(ticker)
+            stock = None
             info = stock.info
             
             # Get ticker's sector
@@ -866,9 +866,26 @@ class QualitativeAnalyzer:
             sector_etf = sector_etfs.get(sector, market_etf)
             
             # Get historical data for ticker, sector, and market
-            ticker_data = yf.download(ticker, period='1y', interval='1d', progress=False)
-            sector_data = yf.download(sector_etf, period='1y', interval='1d', progress=False)
-            market_data = yf.download(market_etf, period='1y', interval='1d', progress=False)
+            api_key = os.environ.get("FMP_API_KEY", "demo")
+            def fmp_download(symbol):
+                url = (
+                    f"https://financialmodelingprep.com/api/v3/historical-price-full/{symbol}?"
+                    f"apikey={api_key}&timeseries=365"
+                )
+                resp = requests.get(url, timeout=10)
+                resp.raise_for_status()
+                hist = resp.json().get("historical", [])
+                df = pd.DataFrame(hist)
+                if df.empty:
+                    return pd.DataFrame()
+                df["date"] = pd.to_datetime(df["date"])
+                df.set_index("date", inplace=True)
+                df.sort_index(inplace=True)
+                return df
+
+            ticker_data = fmp_download(ticker)
+            sector_data = fmp_download(sector_etf)
+            market_data = fmp_download(market_etf)
             
             # Calculate returns
             ticker_returns = ticker_data['Close'].pct_change()

@@ -44,7 +44,8 @@ class TestNewsTrading:
                 {"name": "Satya Nadella", "role": "CEO", "company": "Microsoft Corporation"}
             ],
             "locations": [
-                {"name": "Cupertino", "country": "USA", "relevance": 0.8}
+                {"name": "Cupertino", "country": "USA", "relevance": 0.8},
+                {"name": "Havana", "country": "Cuba", "relevance": 0.5}
             ],
             "products": [
                 {"name": "iPhone", "company": "Apple Inc.", "relevance": 0.85},

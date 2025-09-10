@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import yfinance as yf
+import requests
 from datetime import datetime, timedelta
 import json
 import os
@@ -160,10 +160,22 @@ def get_market_conditions(ticker):
     
     try:
         # Download data
-        end_date = datetime.now()
-        start_date = end_date - timedelta(days=180)
-        
-        data = yf.download(ticker, start=start_date, end=end_date, progress=False)
+        api_key = os.environ.get("FMP_API_KEY", "demo")
+        url = (
+            f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}?"
+            f"apikey={api_key}&timeseries=180"
+        )
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        hist = response.json().get("historical", [])
+        if not hist:
+            logger.warning(f"No data found for {ticker}")
+            return {"regime": "unknown", "volatility": "unknown"}
+
+        data = pd.DataFrame(hist)
+        data["date"] = pd.to_datetime(data["date"])
+        data.set_index("date", inplace=True)
+        data.sort_index(inplace=True)
         
         if data.empty:
             logger.warning(f"No data found for {ticker}")
@@ -225,10 +237,22 @@ def generate_charts(ticker):
     
     try:
         # Download data
-        end_date = datetime.now()
-        start_date = end_date - timedelta(days=180)
-        
-        data = yf.download(ticker, start=start_date, end=end_date, progress=False)
+        api_key = os.environ.get("FMP_API_KEY", "demo")
+        url = (
+            f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}?"
+            f"apikey={api_key}&timeseries=180"
+        )
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        hist = response.json().get("historical", [])
+        if not hist:
+            logger.warning(f"No data found for {ticker}")
+            return
+
+        data = pd.DataFrame(hist)
+        data["date"] = pd.to_datetime(data["date"])
+        data.set_index("date", inplace=True)
+        data.sort_index(inplace=True)
         
         if data.empty:
             logger.warning(f"No data found for {ticker}")
